@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <initializer_list>
 
 namespace {
 constexpr uint8_t RED_LED_PIN = 15;
@@ -22,37 +23,33 @@ enum Mode : uint8_t {
 
 constexpr uint8_t ACTIVE_MODES = MODE_1 | MODE_3 | MODE_SOS;
 
-void flashLed(uint8_t pin, unsigned long duration = POLICE_FLASH_MS,
-              unsigned long gap = POLICE_GAP_MS) {
-    digitalWrite(pin, HIGH);
-    delay(duration);
-    digitalWrite(pin, LOW);
-    delay(gap);
-}
+void flashLeds(std::initializer_list<uint8_t> pins,
+               unsigned long duration = POLICE_FLASH_MS,
+               unsigned long gap = POLICE_GAP_MS) {
+    for (uint8_t pin : pins) {
+        digitalWrite(pin, HIGH);
+    }
 
-void flashBoth(uint8_t firstPin, uint8_t secondPin, unsigned long duration) {
-    digitalWrite(firstPin, HIGH);
-    digitalWrite(secondPin, HIGH);
     delay(duration);
-    digitalWrite(firstPin, LOW);
-    digitalWrite(secondPin, LOW);
+
+    for (uint8_t pin : pins) {
+        digitalWrite(pin, LOW);
+    }
+
+    if (gap > 0) {
+        delay(gap);
+    }
 }
 
 void flashReverseLeds(uint8_t pin, unsigned long flashDuration,
                       unsigned long offDuration) {
-    // Червоний через GPIO4
-    digitalWrite(pin, HIGH);
-    delay(flashDuration);
+    pinMode(pin, OUTPUT);
+    flashLeds({pin}, flashDuration, flashDuration);
 
-    // Синій через GPIO4
-    digitalWrite(pin, LOW);
-    delay(flashDuration);
-
-    // Обидва вимкнені
+    // Reverse wiring uses HIGH for red, LOW for blue, and INPUT for off.
     pinMode(pin, INPUT);
     delay(offDuration);
 
-    // Повернення до OUTPUT без зайвого спалаху
     digitalWrite(pin, HIGH);
     pinMode(pin, OUTPUT);
 }
@@ -63,7 +60,7 @@ void sendMorseLetter(uint8_t firstPin, uint8_t secondPin,
         const unsigned long duration =
             pattern[i] == '.' ? MORSE_UNIT_MS : MORSE_UNIT_MS * 3;
 
-        flashBoth(firstPin, secondPin, duration);
+        flashLeds({firstPin, secondPin}, duration, 0);
 
         if (pattern[i + 1] != '\0') {
             delay(MORSE_UNIT_MS);
@@ -95,20 +92,20 @@ void setup() {
 void loop() {
     if (ACTIVE_MODES & MODE_1) {
         for (uint8_t i = 0; i < 4; ++i) {
-            flashLed(RED_LED_PIN);
-            flashLed(BLUE_LED_PIN);
+            flashLeds({RED_LED_PIN});
+            flashLeds({BLUE_LED_PIN});
         }
     }
 
     if (ACTIVE_MODES & MODE_2) {
         for (uint8_t i = 0; i < 3; ++i) {
-            flashLed(RED_LED_PIN);
+            flashLeds({RED_LED_PIN});
         }
 
         delay(POLICE_GROUP_GAP_MS);
 
         for (uint8_t i = 0; i < 3; ++i) {
-            flashLed(BLUE_LED_PIN);
+            flashLeds({BLUE_LED_PIN});
         }
 
         delay(MODE_GAP_MS);
