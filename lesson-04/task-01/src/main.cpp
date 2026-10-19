@@ -7,6 +7,10 @@ constexpr uint8_t REVERSE_LED_PIN = 4;
 
 constexpr unsigned long POLICE_FLASH_MS = 120;
 constexpr unsigned long POLICE_GAP_MS = 80;
+constexpr unsigned long POLICE_GROUP_GAP_MS = 150;
+constexpr unsigned long MODE_GAP_MS = 300;
+constexpr unsigned long REVERSE_FLASH_MS = 150;
+constexpr unsigned long REVERSE_OFF_MS = 300;
 constexpr unsigned long MORSE_UNIT_MS = 180;
 
 enum Mode : uint8_t {
@@ -18,45 +22,48 @@ enum Mode : uint8_t {
 
 constexpr uint8_t ACTIVE_MODES = MODE_1 | MODE_3 | MODE_SOS;
 
-void flashLed(uint8_t pin, unsigned long duration, unsigned long gap) {
+void flashLed(uint8_t pin, unsigned long duration = POLICE_FLASH_MS,
+              unsigned long gap = POLICE_GAP_MS) {
     digitalWrite(pin, HIGH);
     delay(duration);
     digitalWrite(pin, LOW);
     delay(gap);
 }
 
-void flashBoth(unsigned long duration) {
-    digitalWrite(RED_LED_PIN, HIGH);
-    digitalWrite(BLUE_LED_PIN, HIGH);
+void flashBoth(uint8_t firstPin, uint8_t secondPin, unsigned long duration) {
+    digitalWrite(firstPin, HIGH);
+    digitalWrite(secondPin, HIGH);
     delay(duration);
-    digitalWrite(RED_LED_PIN, LOW);
-    digitalWrite(BLUE_LED_PIN, LOW);
+    digitalWrite(firstPin, LOW);
+    digitalWrite(secondPin, LOW);
 }
 
-void flashReverseLeds() {
+void flashReverseLeds(uint8_t pin, unsigned long flashDuration,
+                      unsigned long offDuration) {
     // Червоний через GPIO4
-    digitalWrite(REVERSE_LED_PIN, HIGH);
-    delay(150);
+    digitalWrite(pin, HIGH);
+    delay(flashDuration);
 
     // Синій через GPIO4
-    digitalWrite(REVERSE_LED_PIN, LOW);
-    delay(150);
+    digitalWrite(pin, LOW);
+    delay(flashDuration);
 
     // Обидва вимкнені
-    pinMode(REVERSE_LED_PIN, INPUT);
-    delay(300);
+    pinMode(pin, INPUT);
+    delay(offDuration);
 
     // Повернення до OUTPUT без зайвого спалаху
-    digitalWrite(REVERSE_LED_PIN, HIGH);
-    pinMode(REVERSE_LED_PIN, OUTPUT);
+    digitalWrite(pin, HIGH);
+    pinMode(pin, OUTPUT);
 }
 
-void sendMorseLetter(const char *pattern) {
+void sendMorseLetter(uint8_t firstPin, uint8_t secondPin,
+                     const char *pattern) {
     for (size_t i = 0; pattern[i] != '\0'; ++i) {
         const unsigned long duration =
             pattern[i] == '.' ? MORSE_UNIT_MS : MORSE_UNIT_MS * 3;
 
-        flashBoth(duration);
+        flashBoth(firstPin, secondPin, duration);
 
         if (pattern[i + 1] != '\0') {
             delay(MORSE_UNIT_MS);
@@ -64,12 +71,12 @@ void sendMorseLetter(const char *pattern) {
     }
 }
 
-void sendSos() {
-    sendMorseLetter("...");
+void sendSos(uint8_t firstPin, uint8_t secondPin) {
+    sendMorseLetter(firstPin, secondPin, "...");
     delay(MORSE_UNIT_MS * 3);
-    sendMorseLetter("---");
+    sendMorseLetter(firstPin, secondPin, "---");
     delay(MORSE_UNIT_MS * 3);
-    sendMorseLetter("...");
+    sendMorseLetter(firstPin, secondPin, "...");
     delay(MORSE_UNIT_MS * 7);
 }
 }
@@ -88,31 +95,31 @@ void setup() {
 void loop() {
     if (ACTIVE_MODES & MODE_1) {
         for (uint8_t i = 0; i < 4; ++i) {
-            flashLed(RED_LED_PIN, POLICE_FLASH_MS, POLICE_GAP_MS);
-            flashLed(BLUE_LED_PIN, POLICE_FLASH_MS, POLICE_GAP_MS);
+            flashLed(RED_LED_PIN);
+            flashLed(BLUE_LED_PIN);
         }
     }
 
     if (ACTIVE_MODES & MODE_2) {
         for (uint8_t i = 0; i < 3; ++i) {
-            flashLed(RED_LED_PIN, POLICE_FLASH_MS, POLICE_GAP_MS);
+            flashLed(RED_LED_PIN);
         }
 
-        delay(150);
+        delay(POLICE_GROUP_GAP_MS);
 
         for (uint8_t i = 0; i < 3; ++i) {
-            flashLed(BLUE_LED_PIN, POLICE_FLASH_MS, POLICE_GAP_MS);
+            flashLed(BLUE_LED_PIN);
         }
 
-        delay(300);
+        delay(MODE_GAP_MS);
     }
 
     if (ACTIVE_MODES & MODE_3) {
-        flashReverseLeds();
+        flashReverseLeds(REVERSE_LED_PIN, REVERSE_FLASH_MS, REVERSE_OFF_MS);
     }
 
     if (ACTIVE_MODES & MODE_SOS) {
-        delay(300);
-        sendSos();
+        delay(MODE_GAP_MS);
+        sendSos(RED_LED_PIN, BLUE_LED_PIN);
     }
 }
