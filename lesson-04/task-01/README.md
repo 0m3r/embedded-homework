@@ -13,26 +13,56 @@
 
 ## Патерн
 
-1. `MODE_1` — червоний і синій LED по черзі роблять чотири короткі спалахи.
-2. `MODE_2` — червоний LED блимає тричі, потім синій LED блимає тричі.
-3. `MODE_3` — два LED по черзі керуються через GPIO 4.
-4. `MODE_SOS` — обидва LED передають SOS (`··· --- ···`) після інших вибраних режимів.
+1. `MODE_ALTERNATING` — червоний і синій LED по черзі роблять чотири короткі спалахи.
+2. `MODE_GROUPED` — червоний LED блимає тричі, потім синій LED блимає тричі.
+3. `MODE_REVERSE` — два LED по черзі керуються через GPIO 4 в окремій FreeRTOS task.
+4. `MODE_SOS` — обидва LED передають SOS (`··· --- ···`) через `morse::send()`.
 
 Крапка SOS триває 180 мс, тире — 540 мс.
 
-## Вибір режимів
+`MODE_REVERSE` працює паралельно з патернами на GPIO 15/40. Між reversed-спалахами GPIO 4 переходить у `INPUT`, тому обидва підключені до нього LED вимкнені.
 
-Режими можна комбінувати оператором `|`. Вони виконуються в порядку `MODE_1`, `MODE_2`, `MODE_3`, `MODE_SOS` незалежно від порядку запису у масці.
+Morse-абетка зараз містить символи `S` і `O`. Невідомі символи пропускаються.
 
 ```cpp
-constexpr uint8_t ACTIVE_MODES = MODE_1 | MODE_3 | MODE_SOS;
+const std::initializer_list<uint8_t> MORSE_PINS = {
+    led_controler::RED_PIN,
+    led_controler::BLUE_PIN,
+};
+
+morse::send("SOS", MORSE_PINS);
 ```
 
-Щоб залишити один режим, вкажіть `MODE_1`. Для двох режимів, наприклад, використайте `MODE_1 | MODE_2`.
+## Структура коду
+
+- `include/lesson4_task01.h` — публічний інтерфейс уроку.
+- `src/lesson4_task01.cpp` — вибір режимів і реалізація уроку.
+- `src/led_controler.h/.cpp` — GPIO, LED-патерни та FreeRTOS task.
+- `src/morse.h/.cpp` — Morse-абетка й передавання повідомлень.
+- `library.json` — опис локальної PlatformIO-бібліотеки.
+
+## Вибір режимів
+
+Режими можна комбінувати оператором `|`. `MODE_ALTERNATING`, `MODE_GROUPED` і `MODE_SOS` виконуються послідовно, а `MODE_REVERSE` працює паралельно в окремій FreeRTOS task.
+
+```cpp
+constexpr uint8_t ACTIVE_MODES =
+    MODE_ALTERNATING | MODE_REVERSE | MODE_SOS;
+```
+
+Щоб залишити один режим, вкажіть `MODE_ALTERNATING`. Для двох режимів, наприклад, використайте `MODE_ALTERNATING | MODE_GROUPED`.
 
 ## Збірка та прошивка
 
+Урок підключений як локальна бібліотека до головного PlatformIO-проєкту:
+
+```text
+/home/om3r/Documents/PlatformIO/Projects/esp32-s3-embedded
+```
+
+Його `src/main.cpp` викликає `lesson4::task01::setup()` та `lesson4::task01::loop()`. Збірка й прошивка запускаються з головного проєкту:
+
 ```bash
-pio run
-pio run --target upload
+pio run -d /home/om3r/Documents/PlatformIO/Projects/esp32-s3-embedded
+pio run -d /home/om3r/Documents/PlatformIO/Projects/esp32-s3-embedded --target upload
 ```
