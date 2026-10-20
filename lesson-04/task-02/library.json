@@ -1,0 +1,8 @@
+{
+  "name": "Lesson4Task02",
+  "version": "1.0.0",
+  "description": "Button-controlled LED for lesson 4 task 02",
+  "frameworks": "arduino",
+  "platforms": "espressif32",
+  "headers": "lesson4_task02.h"
+}

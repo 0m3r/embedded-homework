@@ -1,0 +1,8 @@
+{
+  "name": "Lesson4Homework",
+  "version": "1.0.0",
+  "description": "Two LEDs controlled by external and BOOT buttons",
+  "frameworks": "arduino",
+  "platforms": "espressif32",
+  "headers": "lesson4_homework.h"
+}
