@@ -1,0 +1,8 @@
+{
+  "name": "Lesson5Task01",
+  "version": "1.0.0",
+  "description": "Two-button control of three LED blinking modes",
+  "frameworks": "arduino",
+  "platforms": "espressif32",
+  "headers": "lesson5_task01.h"
+}
