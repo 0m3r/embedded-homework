@@ -1,0 +1,8 @@
+{
+  "name": "Lesson6Homework",
+  "version": "1.0.0",
+  "description": "LDR ADC voltage and relative error measurement",
+  "frameworks": "arduino",
+  "platforms": "espressif32",
+  "headers": "lesson6_homework.h"
+}

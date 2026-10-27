@@ -1,0 +1,8 @@
+{
+  "name": "Lesson6Task01",
+  "version": "1.0.0",
+  "description": "LDR ADC readings with moving average LED control",
+  "frameworks": "arduino",
+  "platforms": "espressif32",
+  "headers": "lesson6_task01.h"
+}
