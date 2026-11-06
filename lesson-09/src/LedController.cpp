@@ -23,7 +23,7 @@ void LedController::update(uint32_t now)
     );
 }
 
-void LedController::selectNextMode(uint32_t now)
+void LedController::next(uint32_t now)
 {
     mode_ = nextMode(mode_);
     lastBlinkAt_ = now;

@@ -36,7 +36,7 @@ void Application::loop()
 
     if (button_.wasPressed())
     {
-        ledController_.selectNextMode(now);
+        ledController_.next(now);
 
         logger_.logf(
             "Mode: %s\n",
