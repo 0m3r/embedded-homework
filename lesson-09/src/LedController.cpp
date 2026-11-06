@@ -2,6 +2,7 @@
 
 void LedController::init(uint32_t now)
 {
+    led_.init();
     lastBlinkAt_ = now;
     applyMode();
 }

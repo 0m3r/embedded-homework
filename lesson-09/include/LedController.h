@@ -8,8 +8,8 @@
 class LedController
 {
 public:
-    constexpr LedController(Led& led, uint32_t blinkIntervalMs)
-        : led_(led),
+    constexpr LedController(uint8_t ledPin, uint32_t blinkIntervalMs)
+        : led_(ledPin),
           blinkIntervalMs_(blinkIntervalMs)
     {
     }
@@ -22,7 +22,7 @@ public:
 private:
     void applyMode();
 
-    Led& led_;
+    Led led_;
     const uint32_t blinkIntervalMs_;
     LedMode mode_ = LedMode::Blink;
     uint32_t lastBlinkAt_ = 0;

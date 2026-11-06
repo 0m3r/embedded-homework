@@ -7,9 +7,8 @@
 
 Application::Application()
     : logger_(Serial, Config::SerialBaud),
-      led_(Config::LedPin),
       button_(Config::ButtonPin, Config::DebounceMs),
-      ledController_(led_, Config::BlinkIntervalMs),
+      ledController_(Config::LedPin, Config::BlinkIntervalMs),
       loopProfiler_(Config::LoopReportIterations)
 {
 }
@@ -18,7 +17,6 @@ void Application::setup()
 {
     logger_.begin();
 
-    led_.init();
     button_.init();
     ledController_.init(millis());
 

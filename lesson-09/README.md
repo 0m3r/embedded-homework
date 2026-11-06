@@ -30,7 +30,7 @@ Blink → AlwaysOn → AlwaysOff → Blink
 | `Config` | GPIO, часові інтервали та Serial baud rate |
 | `Led` | Фізичний стан світлодіода |
 | `Button` | Переривання, debounce і подія натискання |
-| `LedController` | Режими LED та таймер блимання |
+| `LedController` | Володіння LED, режими та таймер блимання |
 | `LoopProfiler` | Середній час виконання ітерації superloop |
 | `Logger` | Ініціалізація UART та форматоване логування |
 | `Application` | Володіння компонентами та координація застосунку |
