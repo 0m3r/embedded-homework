@@ -9,7 +9,7 @@ enum class LedMode : uint8_t
     AlwaysOff
 };
 
-constexpr LedMode nextMode(LedMode mode)
+constexpr LedMode getNextMode(LedMode mode)
 {
     switch (mode)
     {

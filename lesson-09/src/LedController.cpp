@@ -4,7 +4,7 @@ void LedController::init(uint32_t now)
 {
     led_.init();
     lastBlinkAt_ = now;
-    applyMode();
+    apply();
 }
 
 void LedController::update(uint32_t now)
@@ -25,9 +25,9 @@ void LedController::update(uint32_t now)
 
 void LedController::next(uint32_t now)
 {
-    mode_ = nextMode(mode_);
+    mode_ = getNextMode(mode_);
     lastBlinkAt_ = now;
-    applyMode();
+    apply();
 }
 
 LedMode LedController::mode() const
@@ -35,7 +35,7 @@ LedMode LedController::mode() const
     return mode_;
 }
 
-void LedController::applyMode()
+void LedController::apply()
 {
     switch (mode_)
     {

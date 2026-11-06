@@ -20,7 +20,7 @@ public:
     LedMode mode() const;
 
 private:
-    void applyMode();
+    void apply();
 
     Led led_;
     const uint32_t blinkIntervalMs_;
