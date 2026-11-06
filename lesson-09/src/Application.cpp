@@ -6,7 +6,8 @@
 #include "LedMode.h"
 
 Application::Application()
-    : led_(Config::LedPin),
+    : logger_(Serial, Config::SerialBaud),
+      led_(Config::LedPin),
       button_(Config::ButtonPin, Config::DebounceMs),
       ledController_(led_, Config::BlinkIntervalMs),
       loopProfiler_(Config::LoopReportIterations)
@@ -15,13 +16,13 @@ Application::Application()
 
 void Application::setup()
 {
-    Serial.begin(Config::SerialBaud);
+    logger_.begin();
 
     led_.init();
     button_.init();
     ledController_.init(millis());
 
-    Serial.println("Ready. Mode: BLINK");
+    logger_.log("Ready. Mode: BLINK");
 }
 
 void Application::loop()
@@ -36,7 +37,7 @@ void Application::loop()
     {
         ledController_.selectNextMode(now);
 
-        Serial.printf(
+        logger_.logf(
             "Mode: %s\n",
             modeName(ledController_.mode())
         );
@@ -46,7 +47,7 @@ void Application::loop()
 
     if (loopProfiler_.endIteration(micros()))
     {
-        Serial.printf(
+        logger_.logf(
             "Average loop time: %lu us (%lu iterations)\n",
             static_cast<unsigned long>(loopProfiler_.averageTimeUs()),
             static_cast<unsigned long>(loopProfiler_.iterationCount())

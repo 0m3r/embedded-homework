@@ -17,6 +17,7 @@ Blink → AlwaysOn → AlwaysOff → Blink
 - клас `Button` з мінімальним ISR, `volatile`-прапорцем і debounce;
 - клас `LedController` для режимів і неблокуючого блимання через `millis()`;
 - клас `LoopProfiler` для вимірювання середнього часу superloop;
+- клас `Logger` як обгортка над `HardwareSerial`;
 - клас `Application`, який володіє компонентами та координує superloop;
 - локальні `static`-об'єкти замість глобальних об'єктів;
 - відсутність `delay()`, dynamic allocation і STL-контейнерів;
@@ -31,6 +32,7 @@ Blink → AlwaysOn → AlwaysOff → Blink
 | `Button` | Переривання, debounce і подія натискання |
 | `LedController` | Режими LED та таймер блимання |
 | `LoopProfiler` | Середній час виконання ітерації superloop |
+| `Logger` | Ініціалізація UART та форматоване логування |
 | `Application` | Володіння компонентами та координація застосунку |
 
 ### Підключення
