@@ -13,7 +13,7 @@ public:
 
     void init();
     void update(uint32_t now);
-    bool wasPressed();
+    bool consumePressEvent();
 
 private:
     static void onChangeIsr();

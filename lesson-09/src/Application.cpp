@@ -34,10 +34,9 @@ void Application::loop()
 
     button_.update(now);
 
-    if (button_.wasPressed())
+    if (button_.consumePressEvent())
     {
-        ledController_.next();
-        ledController_.setLastBlinkAt(now);
+        ledController_.next(now);
 
         logger_.logf(
             "Mode: %s\n",

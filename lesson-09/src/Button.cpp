@@ -45,7 +45,7 @@ void Button::update(uint32_t now)
     }
 }
 
-bool Button::wasPressed()
+bool Button::consumePressEvent()
 {
     const bool result = pressedEvent_;
     pressedEvent_ = false;

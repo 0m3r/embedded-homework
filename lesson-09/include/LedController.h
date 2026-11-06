@@ -16,12 +16,12 @@ public:
 
     void init(uint32_t now);
     void update(uint32_t now);
-    void next();
-    void setLastBlinkAt(uint32_t now);
+    void next(uint32_t now);
     LedMode mode() const;
 
 private:
     void apply();
+    void setLastBlinkAt(uint32_t now);
 
     Led led_;
     const uint32_t blinkIntervalMs_;
