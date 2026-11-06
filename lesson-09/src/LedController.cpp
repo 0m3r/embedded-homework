@@ -9,18 +9,10 @@ void LedController::init(uint32_t now)
 
 void LedController::update(uint32_t now)
 {
-    if (mode_ != LedMode::Blink ||
-        now - lastBlinkAt_ < blinkIntervalMs_)
+    if (mode_ == LedMode::Blink)
     {
-        return;
+        blink(now);
     }
-
-    setLastBlinkAt(now);
-    led_.set(
-        led_.state() == LedState::On
-            ? LedState::Off
-            : LedState::On
-    );
 }
 
 void LedController::next(uint32_t now)
@@ -46,11 +38,41 @@ void LedController::apply()
     {
         case LedMode::Blink:
         case LedMode::AlwaysOff:
-            led_.set(LedState::Off);
+            off();
             break;
 
         case LedMode::AlwaysOn:
-            led_.set(LedState::On);
+            on();
             break;
     }
+}
+
+void LedController::blink(uint32_t now)
+{
+    if (now - lastBlinkAt_ < blinkIntervalMs_)
+    {
+        return;
+    }
+
+    setLastBlinkAt(now);
+    toggle();
+}
+
+void LedController::on()
+{
+    led_.set(LedState::On);
+}
+
+void LedController::off()
+{
+    led_.set(LedState::Off);
+}
+
+void LedController::toggle()
+{
+    led_.set(
+        led_.state() == LedState::On
+            ? LedState::Off
+            : LedState::On
+    );
 }

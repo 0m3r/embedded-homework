@@ -22,6 +22,10 @@ public:
 private:
     void apply();
     void setLastBlinkAt(uint32_t now);
+    void blink(uint32_t now);
+    void on();
+    void off();
+    void toggle();
 
     Led led_;
     const uint32_t blinkIntervalMs_;
