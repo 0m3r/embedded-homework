@@ -3,7 +3,7 @@
 void LedController::init(uint32_t now)
 {
     led_.init();
-    lastBlinkAt_ = now;
+    setLastBlinkAt(now);
     apply();
 }
 
@@ -15,7 +15,7 @@ void LedController::update(uint32_t now)
         return;
     }
 
-    lastBlinkAt_ = now;
+    setLastBlinkAt(now);
     led_.set(
         led_.state() == LedState::On
             ? LedState::Off
@@ -23,11 +23,15 @@ void LedController::update(uint32_t now)
     );
 }
 
-void LedController::next(uint32_t now)
+void LedController::next()
 {
     mode_ = getNextMode(mode_);
-    lastBlinkAt_ = now;
     apply();
+}
+
+void LedController::setLastBlinkAt(uint32_t now)
+{
+    lastBlinkAt_ = now;
 }
 
 LedMode LedController::mode() const
