@@ -20,7 +20,10 @@ void Application::setup()
     button_.init();
     ledController_.init(millis());
 
-    logger_.log("Ready. Mode: BLINK");
+    logger_.logf(
+        "Ready. Mode: %s\n",
+        modeName(ledController_.mode())
+    );
 }
 
 void Application::loop()
