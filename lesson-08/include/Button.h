@@ -5,12 +5,16 @@
 class Button
 {
 private:
-    uint32_t lastTimeChangeBtn = 0; // час останньої перевірки натиску кнопки
-    uint32_t btnTimekeeper = 0;  // час першого натиску
+    uint32_t lastPollTime = 0;
+    uint32_t lastRawChangeTime = 0;
+    uint32_t pressStartTime = 0;
+
+    bool lastRawState = false;
+    bool stableState = false;
     bool buttonState = false;
 
 public:
     void init();
     void poll();
-    bool get_state();
+    bool isLongPressed() const;
 };

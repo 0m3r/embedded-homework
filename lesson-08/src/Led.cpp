@@ -5,10 +5,11 @@
 
 void Led::init()
 {
-    pinMode(LED, OUTPUT);
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, LOW);
 }
 
-void Led::handler(bool light_on)
+void Led::set(bool enabled)
 {
-    digitalWrite(LED, light_on ? HIGH : LOW);
+    digitalWrite(LED_PIN, enabled ? HIGH : LOW);
 }

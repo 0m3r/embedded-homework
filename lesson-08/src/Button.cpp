@@ -5,42 +5,52 @@
 
 void Button::init()
 {
-    pinMode(BTN, INPUT_PULLDOWN);
+    pinMode(BUTTON_PIN, INPUT_PULLDOWN);
 }
 
 void Button::poll()
 {
-    if (millis() - lastTimeChangeBtn > BTN_PERIOD_MS)
+    const uint32_t now = millis();
+
+    if (now - lastPollTime < BUTTON_POLL_PERIOD_MS)
     {
-        lastTimeChangeBtn = millis();
+        return;
+    }
 
-        uint16_t btn_value = digitalRead(BTN);
+    lastPollTime = now;
+    const bool rawState = digitalRead(BUTTON_PIN) == HIGH;
 
-        if (btn_value == HIGH)
+    if (rawState != lastRawState)
+    {
+        lastRawState = rawState;
+        lastRawChangeTime = now;
+    }
+
+    if (now - lastRawChangeTime >= BUTTON_DEBOUNCE_MS &&
+        stableState != rawState)
+    {
+        stableState = rawState;
+
+        if (stableState)
         {
-            if (btnTimekeeper == 0)
-            {
-                btnTimekeeper = millis();
-            }
-            else if (millis() - btnTimekeeper > BTN_LONG_PRESS_MS)
-            {
-                buttonState = true;
-
-                Serial.printf(
-                    "btn %lu\n",
-                    static_cast<unsigned long>(millis())
-                );
-            }
+            pressStartTime = now;
         }
         else
         {
             buttonState = false;
-            btnTimekeeper = 0;
         }
+    }
+
+    if (stableState &&
+        !buttonState &&
+        now - pressStartTime >= BUTTON_LONG_PRESS_MS)
+    {
+        buttonState = true;
+        Serial.println("Long press detected");
     }
 }
 
-bool Button::get_state()
+bool Button::isLongPressed() const
 {
     return buttonState;
 }

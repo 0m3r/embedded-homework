@@ -1,16 +1,15 @@
 #include <Arduino.h>
-#include <esp_task_wdt.h>
-#include <esp_system.h>
-#include <esp_err.h>
 
 #include "config.h"
 #include "Button.h"
 #include "Ldr.h"
 #include "Led.h"
+#include "Watchdog.h"
 
 Button button;
 Ldr ldr;
 Led led;
+Watchdog watchdog;
 
 void setup()
 {
@@ -21,57 +20,36 @@ void setup()
     ldr.init();
     led.init();
 
-    // Настройки watchdog для новой версии framework.
-    esp_task_wdt_config_t wdtConfig = {};
-    wdtConfig.timeout_ms = 5000;
-    wdtConfig.idle_core_mask = 0;
-    wdtConfig.trigger_panic = true;
-
-    esp_err_t result = esp_task_wdt_init(&wdtConfig);
-    //ESP_OK
-    //ESP_ERR_INVALID_STATE
-
-    // Framework мог уже включить watchdog при запуске.
-    if (result == ESP_ERR_INVALID_STATE)
-    {
-        result = esp_task_wdt_reconfigure(&wdtConfig);
-    }
-
-    ESP_ERROR_CHECK(result);
-
-    // Добавляем текущую задачу, если она ещё не подписана.
-    if (esp_task_wdt_status(NULL) != ESP_OK)
-    {
-        ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
-    }
-
-    Serial.println("Watchdog initialized: 5 seconds");
-
-    Serial.printf(
-        "reset reason: %d\n",
-        esp_reset_reason()
-    );
+    watchdog.init(5000);
 }
 
 void loop()
 {
-    esp_task_wdt_reset();
+    watchdog.feed();
 
     ldr.poll();
     button.poll();
 
-    led.handler(button.get_state() && ldr.get_state());
+    const bool longPressed = button.isLongPressed();
+    const bool dark = ldr.isDark();
+    const bool ledOn = longPressed && dark && !ldr.hasError();
+
+    led.set(ledOn);
 
     static uint32_t lastLog = 0;
 
-    if (millis() - lastLog >= 200)
+    if (millis() - lastLog >= LOG_PERIOD_MS)
     {
         lastLog = millis();
 
         Serial.printf(
-            "led cond %d %d\n",
-            button.get_state(),
-            ldr.get_state()
+            "ADC raw: %u | avg: %u | dark: %s | button: %s | LED: %s | error: %s\n",
+            static_cast<unsigned>(ldr.getRawValue()),
+            static_cast<unsigned>(ldr.getFilteredValue()),
+            dark ? "YES" : "NO",
+            longPressed ? "PRESSED" : "RELEASED",
+            ledOn ? "ON" : "OFF",
+            ldr.hasError() ? "YES" : "NO"
         );
     }
 

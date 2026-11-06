@@ -3,74 +3,103 @@
 
 #include <Arduino.h>
 
-bool Ldr::get_state()
+bool Ldr::isDark() const
 {
     return ldrState;
 }
 
+bool Ldr::hasError() const
+{
+    return sensorError;
+}
+
+uint16_t Ldr::getRawValue() const
+{
+    return rawValue;
+}
+
+uint16_t Ldr::getFilteredValue() const
+{
+    return filteredValue;
+}
+
 void Ldr::init()
 {
-    pinMode(LDR, INPUT);
+    pinMode(LDR_PIN, INPUT);
+    analogReadResolution(12);
+    analogSetPinAttenuation(LDR_PIN, ADC_11db);
 
-    filterInit(analogRead(LDR));
+    rawValue = analogRead(LDR_PIN);
+    filteredValue = rawValue;
+    filterInit(rawValue);
 }
 
 void Ldr::poll()
 {
-    if (millis() - lastTimeChangeLdr > LDR_PERIOD_MS &&
-        err_count < 5)
+    const uint32_t now = millis();
+
+    if (now - lastTimeChangeLdr < LDR_PERIOD_MS)
     {
-        lastTimeChangeLdr = millis();
+        return;
+    }
 
-        uint16_t adc_value = analogRead(LDR);
-        uint16_t filtered_adc_value = movingAvg(adc_value);
+    lastTimeChangeLdr = now;
+    rawValue = analogRead(LDR_PIN);
+    filteredValue = movingAvg(rawValue);
 
-        // Учебная обработка нулевых показаний из урока.
-        // После пяти таких показаний опрос прекращается.
-        if (filtered_adc_value == 0)
+    if (filteredValue == 0)
+    {
+        if (err_count < LDR_MAX_ZERO_READINGS)
         {
-            err_count++;
-            ldrState = true;
-            return;
+            ++err_count;
+
+            if (err_count == LDR_MAX_ZERO_READINGS)
+            {
+                Serial.println("LDR error: repeated zero readings");
+                sensorError = true;
+            }
         }
 
-        if (filtered_adc_value < LDR_THRESHOLD)
-        {
-            ldrState = true;
+        ldrState = false;
+        return;
+    }
 
-            Serial.printf(
-                "adc raw value %d adc filtered %d errors %d\n",
-                adc_value,
-                filtered_adc_value,
-                err_count
-            );
-        }
-        else
-        {
-            ldrState = false;
-        }
+    if (sensorError)
+    {
+        Serial.println("LDR recovered");
+    }
+
+    sensorError = false;
+    err_count = 0;
+
+    if (filteredValue < LDR_DARK_THRESHOLD)
+    {
+        ldrState = true;
+    }
+    else if (filteredValue > LDR_LIGHT_THRESHOLD)
+    {
+        ldrState = false;
     }
 }
 
 void Ldr::filterInit(uint16_t initData)
 {
-    for (uint8_t i = 0; i < N; i++)
+    sum = 0;
+
+    for (uint8_t i = 0; i < LDR_FILTER_SIZE; ++i)
     {
         readings[i] = initData;
         sum += initData;
     }
 }
 
-// Восстановленная реализация скользящего среднего.
 uint16_t Ldr::movingAvg(uint16_t rawData)
 {
     sum -= readings[idx];
-
     readings[idx] = rawData;
+    sum += rawData;
 
-    sum += readings[idx];
+    idx = (idx + 1) % LDR_FILTER_SIZE;
 
-    idx = (idx + 1) % N;
-
-    return static_cast<uint16_t>(sum / N);
+    return static_cast<uint16_t>(sum / LDR_FILTER_SIZE);
 }
