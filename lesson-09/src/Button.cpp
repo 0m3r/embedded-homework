@@ -2,20 +2,20 @@
 
 #include <Arduino.h>
 
-volatile bool Button::interruptEvent_ = false;
+volatile bool Button::interruptPending_ = false;
 
 void IRAM_ATTR Button::onChangeIsr()
 {
     // ISR лише фіксує подію. Обробка виконується в superloop.
-    interruptEvent_ = true;
+    interruptPending_ = true;
 }
 
 void Button::init()
 {
     pinMode(pin_, INPUT_PULLUP);
 
-    rawState_ = digitalRead(pin_) == HIGH;
-    stableState_ = rawState_;
+    rawPressed_ = digitalRead(pin_) == LOW;
+    stablePressed_ = rawPressed_;
 
     attachInterrupt(
         digitalPinToInterrupt(pin_),
@@ -24,40 +24,35 @@ void Button::init()
     );
 }
 
-void Button::update(uint32_t now)
+bool Button::update(uint32_t now)
 {
-    if (takeInterruptEvent())
+    if (consumeInterruptEvent())
     {
-        rawState_ = digitalRead(pin_) == HIGH;
+        rawPressed_ = digitalRead(pin_) == LOW;
         lastChangeAt_ = now;
     }
 
-    if (rawState_ != stableState_ &&
-        now - lastChangeAt_ >= debounceMs_)
-    {
-        stableState_ = rawState_;
-
-        // INPUT_PULLUP: LOW означає підтверджене натискання.
-        if (!stableState_)
-        {
-            pressedEvent_ = true;
-        }
-    }
+    return debounce(now);
 }
 
-bool Button::consumePressEvent()
+bool Button::debounce(uint32_t now)
 {
-    const bool result = pressedEvent_;
-    pressedEvent_ = false;
-    return result;
+    if (rawPressed_ == stablePressed_ ||
+        now - lastChangeAt_ < debounceMs_)
+    {
+        return false;
+    }
+
+    stablePressed_ = rawPressed_;
+    return stablePressed_;
 }
 
-bool Button::takeInterruptEvent()
+bool Button::consumeInterruptEvent()
 {
     noInterrupts();
-    const bool eventDetected = interruptEvent_;
-    interruptEvent_ = false;
+    const bool wasPending = interruptPending_;
+    interruptPending_ = false;
     interrupts();
 
-    return eventDetected;
+    return wasPending;
 }

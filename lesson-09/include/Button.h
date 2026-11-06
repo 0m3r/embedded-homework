@@ -12,20 +12,19 @@ public:
     }
 
     void init();
-    void update(uint32_t now);
-    bool consumePressEvent();
+    bool update(uint32_t now);
 
 private:
     static void onChangeIsr();
-    static volatile bool interruptEvent_;
+    static volatile bool interruptPending_;
 
-    bool takeInterruptEvent();
+    bool consumeInterruptEvent();
+    bool debounce(uint32_t now);
 
     const uint8_t pin_;
     const uint32_t debounceMs_;
 
     uint32_t lastChangeAt_ = 0;
-    bool rawState_ = true;
-    bool stableState_ = true;
-    bool pressedEvent_ = false;
+    bool rawPressed_ = false;
+    bool stablePressed_ = false;
 };

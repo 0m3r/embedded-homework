@@ -32,9 +32,7 @@ void Application::loop()
 
     const uint32_t now = millis();
 
-    button_.update(now);
-
-    if (button_.consumePressEvent())
+    if (button_.update(now))
     {
         ledController_.next(now);
 
