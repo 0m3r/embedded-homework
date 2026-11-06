@@ -2,20 +2,20 @@
 
 #include <Arduino.h>
 
-volatile bool Button::interruptPending_ = false;
+volatile bool Button::changed_ = false;
 
 void IRAM_ATTR Button::onChangeIsr()
 {
     // ISR лише фіксує подію. Обробка виконується в superloop.
-    interruptPending_ = true;
+    changed_ = true;
 }
 
 void Button::init()
 {
     pinMode(pin_, INPUT_PULLUP);
 
-    rawPressed_ = digitalRead(pin_) == LOW;
-    stablePressed_ = rawPressed_;
+    raw_ = digitalRead(pin_) == LOW;
+    stable_ = raw_;
 
     attachInterrupt(
         digitalPinToInterrupt(pin_),
@@ -26,9 +26,9 @@ void Button::init()
 
 bool Button::update(uint32_t now)
 {
-    if (consumeInterruptEvent())
+    if (consumeChange())
     {
-        rawPressed_ = digitalRead(pin_) == LOW;
+        raw_ = digitalRead(pin_) == LOW;
         lastChangeAt_ = now;
     }
 
@@ -37,22 +37,22 @@ bool Button::update(uint32_t now)
 
 bool Button::debounce(uint32_t now)
 {
-    if (rawPressed_ == stablePressed_ ||
+    if (raw_ == stable_ ||
         now - lastChangeAt_ < debounceMs_)
     {
         return false;
     }
 
-    stablePressed_ = rawPressed_;
-    return stablePressed_;
+    stable_ = raw_;
+    return stable_;
 }
 
-bool Button::consumeInterruptEvent()
+bool Button::consumeChange()
 {
     noInterrupts();
-    const bool wasPending = interruptPending_;
-    interruptPending_ = false;
+    const bool changed = changed_;
+    changed_ = false;
     interrupts();
 
-    return wasPending;
+    return changed;
 }

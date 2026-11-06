@@ -16,15 +16,15 @@ public:
 
 private:
     static void onChangeIsr();
-    static volatile bool interruptPending_;
+    static volatile bool changed_;
 
-    bool consumeInterruptEvent();
+    bool consumeChange();
     bool debounce(uint32_t now);
 
     const uint8_t pin_;
     const uint32_t debounceMs_;
 
     uint32_t lastChangeAt_ = 0;
-    bool rawPressed_ = false;
-    bool stablePressed_ = false;
+    bool raw_ = false;
+    bool stable_ = false;
 };
