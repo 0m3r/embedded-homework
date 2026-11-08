@@ -10,7 +10,7 @@ struct Config
     static constexpr uint32_t BlinkIntervalMs = 500;
     static constexpr uint32_t DebounceMs = 40;
     static constexpr uint32_t SerialBaud = 115200;
-    static constexpr uint32_t LoopReportIterations = 1000;
+    static constexpr uint32_t LoopReportIterations = 500000;
 };
 
 static_assert(
