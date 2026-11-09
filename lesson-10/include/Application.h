@@ -2,9 +2,11 @@
 
 #include <stdint.h>
 
-#include "Ldr.h"
 #include "Logger.h"
-#include "MotorController.h"
+#include "Potentiometer.h"
+#include "RelayTester.h"
+#include "SoftwarePwm.h"
+#include "UartExperiment.h"
 
 class Application
 {
@@ -15,8 +17,15 @@ public:
     void loop();
 
 private:
+    void reportRelayMeasurement(const RelayMeasurement& measurement);
+
     Logger logger_;
-    Ldr ldr_;
-    MotorController motorController_;
-    uint32_t lastPrintAt_ = 0;
+    RelayTester relayTester_;
+    Potentiometer potentiometer_;
+    SoftwarePwm motorPwm_;
+    UartExperiment uartExperiment_;
+
+    uint32_t lastPrintAtMs_ = 0;
+    bool relaySummaryPrinted_ = false;
+    bool relayErrorPrinted_ = false;
 };
