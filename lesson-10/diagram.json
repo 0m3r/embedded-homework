@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "author": "0m3r",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-s3-devkitc-1",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-photoresistor-sensor",
+      "id": "ldr",
+      "top": 15,
+      "left": 330,
+      "attrs": { "lux": "100" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 235,
+      "left": 315,
+      "rotate": 90,
+      "attrs": { "value": "330" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "motorLed",
+      "top": 340,
+      "left": 337,
+      "attrs": { "color": "green", "label": "MOTOR" }
+    }
+  ],
+  "connections": [
+    [ "esp:3V3.1", "ldr:VCC", "red", [ "h45", "v-95", "h220" ] ],
+    [ "esp:GND.1", "ldr:GND", "black", [ "h65", "v-65", "h185" ] ],
+    [ "esp:2", "ldr:AO", "green", [ "h95", "v-20", "h150" ] ],
+    [ "esp:17", "r1:1", "blue", [ "h110", "v55", "h100" ] ],
+    [ "r1:2", "motorLed:A", "blue", [ "v35" ] ],
+    [ "motorLed:C", "esp:GND.1", "black", [ "v35", "h-225", "v-125" ] ]
+  ],
+  "dependencies": {}
+}
