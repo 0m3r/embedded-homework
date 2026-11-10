@@ -3,18 +3,18 @@
 #include <Arduino.h>
 
 volatile bool Relay::contactChanged_ = false;
-volatile uint32_t Relay::contactEdgeAtUs_ = 0;
+volatile uint32_t Relay::edgeAtUs_ = 0;
 
 void IRAM_ATTR Relay::onContactChangeIsr()
 {
-    contactEdgeAtUs_ = micros();
+    edgeAtUs_ = micros();
     contactChanged_ = true;
 }
 
 void Relay::init()
 {
     pinMode(controlPin_, OUTPUT);
-    digitalWrite(controlPin_, LOW);
+    off();
 
     pinMode(feedbackPin_, INPUT_PULLUP);
     stableClosed_ = digitalRead(feedbackPin_) == LOW;
@@ -26,9 +26,28 @@ void Relay::init()
     );
 }
 
-void Relay::setEnabled(bool enabled)
+void Relay::on()
 {
-    digitalWrite(controlPin_, enabled ? HIGH : LOW);
+    enabled_ = true;
+    digitalWrite(controlPin_, HIGH);
+}
+
+void Relay::off()
+{
+    enabled_ = false;
+    digitalWrite(controlPin_, LOW);
+}
+
+void Relay::toggle()
+{
+    if (enabled_)
+    {
+        off();
+    }
+    else
+    {
+        on();
+    }
 }
 
 bool Relay::tick(uint32_t nowUs, RelayContactEvent& event)
@@ -69,7 +88,7 @@ bool Relay::consumeInterrupt(uint32_t& edgeAtUs)
 {
     noInterrupts();
     const bool changed = contactChanged_;
-    edgeAtUs = contactEdgeAtUs_;
+    edgeAtUs = edgeAtUs_;
     contactChanged_ = false;
     interrupts();
     return changed;

@@ -23,13 +23,15 @@ public:
     }
 
     void init();
-    void setEnabled(bool enabled);
+    void on();
+    void off();
+    void toggle();
     bool tick(uint32_t nowUs, RelayContactEvent& event);
 
 private:
     static void onContactChangeIsr();
     static volatile bool contactChanged_;
-    static volatile uint32_t contactEdgeAtUs_;
+    static volatile uint32_t edgeAtUs_;
 
     bool consumeInterrupt(uint32_t& edgeAtUs);
     bool debounce(uint32_t nowUs, RelayContactEvent& event);
@@ -41,5 +43,6 @@ private:
     bool stableClosed_ = false;
     bool candidatePending_ = false;
     bool candidateClosed_ = false;
+    bool enabled_ = false;
     uint32_t candidateAtUs_ = 0;
 };

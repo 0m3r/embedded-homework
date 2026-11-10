@@ -40,7 +40,7 @@ bool RelayTester::tick(
         case State::WaitingForOff:
             if (nowUs - commandAtUs_ >= config_.timeoutUs)
             {
-                relay_.setEnabled(false);
+                relay_.off();
                 state_ = State::Failed;
             }
             break;
@@ -138,7 +138,15 @@ void RelayTester::setRelay(bool enabled, uint32_t nowUs)
 {
     commandAtUs_ = nowUs;
     state_ = enabled ? State::WaitingForOn : State::WaitingForOff;
-    relay_.setEnabled(enabled);
+
+    if (enabled)
+    {
+        relay_.on();
+    }
+    else
+    {
+        relay_.off();
+    }
 }
 
 void RelayTester::recordMeasurement(
