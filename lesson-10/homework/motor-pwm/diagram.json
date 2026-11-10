@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "author": "0m3r",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-s3-devkitc-1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-potentiometer", "id": "pot", "top": 0, "left": 350, "attrs": { "value": "512" } },
+    { "type": "wokwi-resistor", "id": "baseR", "top": 180, "left": 350, "rotate": 90, "attrs": { "value": "1000" } },
+    { "type": "wokwi-resistor", "id": "pullDownR", "top": 230, "left": 440, "rotate": 90, "attrs": { "value": "10000" } },
+    { "type": "wokwi-led", "id": "motorLed", "top": 290, "left": 372, "attrs": { "color": "green", "label": "MOTOR PWM" } },
+    { "type": "wokwi-logic-analyzer", "id": "logic", "top": 80, "left": 590, "attrs": { "channelNames": "MOTOR,UART" } }
+  ],
+  "connections": [
+    [ "esp:3V3.1", "pot:VCC", "red", [] ],
+    [ "esp:GND.1", "pot:GND", "black", [] ],
+    [ "esp:2", "pot:SIG", "green", [] ],
+    [ "esp:17", "baseR:1", "blue", [] ],
+    [ "baseR:2", "motorLed:A", "blue", [] ],
+    [ "baseR:2", "pullDownR:1", "blue", [] ],
+    [ "pullDownR:2", "esp:GND.1", "black", [] ],
+    [ "motorLed:C", "esp:GND.1", "black", [] ],
+    [ "esp:17", "logic:D0", "purple", [] ],
+    [ "esp:4", "logic:D1", "orange", [] ],
+    [ "esp:GND.1", "logic:GND", "black", [] ]
+  ],
+  "dependencies": {}
+}
