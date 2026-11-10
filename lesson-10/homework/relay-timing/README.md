@@ -42,7 +42,8 @@ GPIO18 працює як `INPUT_PULLUP`: розімкнений `NO` дає `HIG
 - повторює повний прогін через 60 секунд після завершення.
 
 `Relay` керує GPIO16. `RelayContact` читає GPIO18, обробляє interrupt і
-debounce. `RelayTester` запускає цикли та обчислює результати вимірювань.
+debounce. `RelayStatistics` рахує цикли та середні значення. `RelayTester`
+лише координує послідовність ON/OFF.
 
 ### Збірка
 

@@ -4,6 +4,7 @@
 
 #include "Relay.h"
 #include "RelayContact.h"
+#include "RelayStatistics.h"
 
 enum class RelayTransition : uint8_t
 {
@@ -62,6 +63,7 @@ private:
 
     Relay& relay_;
     RelayContact& contact_;
+    RelayStatistics statistics_;
     const uint8_t measurementCount_;
     const uint32_t settleUs_;
     const uint32_t timeoutUs_;
@@ -69,10 +71,7 @@ private:
     Phase phase_ = Phase::On;
     bool waiting_ = false;
     bool warmup_ = true;
-    uint8_t cycle_ = 0;
 
     uint32_t commandAtUs_ = 0;
     uint32_t pauseAtUs_ = 0;
-    uint64_t onTotalUs_ = 0;
-    uint64_t offTotalUs_ = 0;
 };

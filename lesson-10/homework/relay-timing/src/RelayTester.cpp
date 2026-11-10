@@ -13,11 +13,9 @@ void RelayTester::restart(uint32_t nowUs)
     phase_ = Phase::On;
     waiting_ = false;
     warmup_ = true;
-    cycle_ = 0;
+    statistics_.reset();
     commandAtUs_ = 0;
     pauseAtUs_ = nowUs;
-    onTotalUs_ = 0;
-    offTotalUs_ = 0;
 }
 
 bool RelayTester::tick(
@@ -70,16 +68,12 @@ bool RelayTester::failed() const
 
 uint32_t RelayTester::averageOnUs() const
 {
-    return cycle_ == 0
-        ? 0
-        : static_cast<uint32_t>(onTotalUs_ / cycle_);
+    return statistics_.averageOnUs();
 }
 
 uint32_t RelayTester::averageOffUs() const
 {
-    return cycle_ == 0
-        ? 0
-        : static_cast<uint32_t>(offTotalUs_ / cycle_);
+    return statistics_.averageOffUs();
 }
 
 void RelayTester::startTransition(uint32_t nowUs)
@@ -111,18 +105,17 @@ bool RelayTester::finishTransition(
             phase_ == Phase::On
                 ? RelayTransition::On
                 : RelayTransition::Off,
-            static_cast<uint8_t>(cycle_ + 1),
+            static_cast<uint8_t>(statistics_.completedCycles() + 1),
             durationUs
         };
 
         if (phase_ == Phase::On)
         {
-            onTotalUs_ += durationUs;
+            statistics_.addOn(durationUs);
         }
         else
         {
-            offTotalUs_ += durationUs;
-            ++cycle_;
+            statistics_.addOff(durationUs);
         }
     }
 
@@ -137,7 +130,7 @@ bool RelayTester::finishTransition(
     }
     else
     {
-        phase_ = cycle_ >= measurementCount_
+        phase_ = statistics_.completedCycles() >= measurementCount_
             ? Phase::Complete
             : Phase::On;
     }
