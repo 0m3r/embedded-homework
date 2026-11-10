@@ -40,7 +40,7 @@ GPIO18 працює як `INPUT_PULLUP`: розімкнений `NO` дає `HIG
 - проводить 10 вимірювань ON і 10 OFF;
 - виводить кожне значення та два середні результати.
 
-`Relay` відповідає за керувальний GPIO16, feedback-вхід GPIO18, interrupt і
+`Relay` керує GPIO16. `RelayContact` читає GPIO18, обробляє interrupt і
 debounce. `RelayTester` запускає цикли та обчислює результати вимірювань.
 
 ### Збірка

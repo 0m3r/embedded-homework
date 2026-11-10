@@ -3,6 +3,7 @@
 void RelayTester::init(uint32_t nowUs)
 {
     relay_.init();
+    contact_.init();
     stateStartedAtUs_ = nowUs;
 }
 
@@ -12,11 +13,10 @@ bool RelayTester::tick(
 )
 {
     bool measured = false;
-    RelayContactEvent event{};
 
-    if (relay_.tick(nowUs, event))
+    if (contact_.tick(nowUs))
     {
-        measured = processContact(event, nowUs, measurement);
+        measured = processContact(nowUs, measurement);
     }
 
     switch (state_)
@@ -82,20 +82,19 @@ uint32_t RelayTester::averageOffUs() const
 }
 
 bool RelayTester::processContact(
-    const RelayContactEvent& event,
     uint32_t nowUs,
     RelayMeasurement& measurement
 )
 {
     bool measured = false;
 
-    if (state_ == State::WaitingForOn && event.closed)
+    if (state_ == State::WaitingForOn && contact_.isClosed())
     {
         if (!warmup_)
         {
             recordMeasurement(
                 RelayTransition::TurnOn,
-                event.changedAtUs - commandAtUs_,
+                contact_.changedAtUs() - commandAtUs_,
                 measurement
             );
             measured = true;
@@ -104,7 +103,7 @@ bool RelayTester::processContact(
         state_ = State::HoldingOn;
         stateStartedAtUs_ = nowUs;
     }
-    else if (state_ == State::WaitingForOff && !event.closed)
+    else if (state_ == State::WaitingForOff && !contact_.isClosed())
     {
         if (warmup_)
         {
@@ -114,7 +113,7 @@ bool RelayTester::processContact(
         {
             recordMeasurement(
                 RelayTransition::TurnOff,
-                event.changedAtUs - commandAtUs_,
+                contact_.changedAtUs() - commandAtUs_,
                 measurement
             );
             measured = true;

@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include "Relay.h"
+#include "RelayContact.h"
 
 enum class RelayTransition : uint8_t
 {
@@ -34,8 +35,13 @@ struct RelayStatistics
 class RelayTester
 {
 public:
-    constexpr RelayTester(Relay& relay, RelayTestConfig config)
+    constexpr RelayTester(
+        Relay& relay,
+        RelayContact& contact,
+        RelayTestConfig config
+    )
         : relay_(relay),
+          contact_(contact),
           config_(config)
     {
     }
@@ -60,11 +66,7 @@ private:
         Failed
     };
 
-    bool processContact(
-        const RelayContactEvent& event,
-        uint32_t nowUs,
-        RelayMeasurement& measurement
-    );
+    bool processContact(uint32_t nowUs, RelayMeasurement& measurement);
     void setRelay(bool enabled, uint32_t nowUs);
     void recordMeasurement(
         RelayTransition transition,
@@ -73,6 +75,7 @@ private:
     );
 
     Relay& relay_;
+    RelayContact& contact_;
     const RelayTestConfig config_;
     RelayStatistics statistics_;
 
