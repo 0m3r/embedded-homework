@@ -7,8 +7,8 @@
 
 enum class RelayTransition : uint8_t
 {
-    TurnOn,
-    TurnOff
+    On,
+    Off
 };
 
 struct RelayMeasurement
@@ -48,8 +48,8 @@ public:
 private:
     enum class Phase : uint8_t
     {
-        TurnOn,
-        TurnOff,
+        On,
+        Off,
         Complete,
         Failed
     };
@@ -66,7 +66,7 @@ private:
     const uint32_t settleUs_;
     const uint32_t timeoutUs_;
 
-    Phase phase_ = Phase::TurnOn;
+    Phase phase_ = Phase::On;
     bool waiting_ = false;
     bool warmup_ = true;
     uint8_t cycle_ = 0;

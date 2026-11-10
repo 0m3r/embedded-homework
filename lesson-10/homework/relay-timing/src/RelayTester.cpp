@@ -10,7 +10,7 @@ void RelayTester::init(uint32_t nowUs)
 void RelayTester::restart(uint32_t nowUs)
 {
     relay_.off();
-    phase_ = Phase::TurnOn;
+    phase_ = Phase::On;
     waiting_ = false;
     warmup_ = true;
     cycle_ = 0;
@@ -34,7 +34,7 @@ bool RelayTester::tick(
 
     if (waiting_)
     {
-        const bool expectedClosed = phase_ == Phase::TurnOn;
+        const bool expectedClosed = phase_ == Phase::On;
 
         if (contactChanged && contact_.isClosed() == expectedClosed)
         {
@@ -87,7 +87,7 @@ void RelayTester::startTransition(uint32_t nowUs)
     commandAtUs_ = nowUs;
     waiting_ = true;
 
-    if (phase_ == Phase::TurnOn)
+    if (phase_ == Phase::On)
     {
         relay_.on();
     }
@@ -108,14 +108,14 @@ bool RelayTester::finishTransition(
     if (measured)
     {
         measurement = {
-            phase_ == Phase::TurnOn
-                ? RelayTransition::TurnOn
-                : RelayTransition::TurnOff,
+            phase_ == Phase::On
+                ? RelayTransition::On
+                : RelayTransition::Off,
             static_cast<uint8_t>(cycle_ + 1),
             durationUs
         };
 
-        if (phase_ == Phase::TurnOn)
+        if (phase_ == Phase::On)
         {
             onTotalUs_ += durationUs;
         }
@@ -126,20 +126,20 @@ bool RelayTester::finishTransition(
         }
     }
 
-    if (phase_ == Phase::TurnOn)
+    if (phase_ == Phase::On)
     {
-        phase_ = Phase::TurnOff;
+        phase_ = Phase::Off;
     }
     else if (warmup_)
     {
         warmup_ = false;
-        phase_ = Phase::TurnOn;
+        phase_ = Phase::On;
     }
     else
     {
         phase_ = cycle_ >= measurementCount_
             ? Phase::Complete
-            : Phase::TurnOn;
+            : Phase::On;
     }
 
     waiting_ = false;

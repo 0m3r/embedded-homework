@@ -75,7 +75,7 @@ void Application::reportMeasurement(const RelayMeasurement& measurement)
 {
     logger_.logf(
         "Relay %s #%u: %lu us (%.3f ms)\n",
-        measurement.transition == RelayTransition::TurnOn ? "ON" : "OFF",
+        measurement.transition == RelayTransition::On ? "ON" : "OFF",
         static_cast<unsigned>(measurement.number),
         static_cast<unsigned long>(measurement.durationUs),
         measurement.durationUs / 1000.0
