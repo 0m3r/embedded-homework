@@ -23,6 +23,7 @@ void Application::setup()
     relayTester_.init(micros());
 
     logger_.log("Relay timing homework");
+    logger_.log("Running one warm-up cycle...");
     logger_.log("Starting 10 ON and 10 OFF measurements...");
 }
 

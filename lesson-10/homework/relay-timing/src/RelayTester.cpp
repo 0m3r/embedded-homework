@@ -153,13 +153,30 @@ void RelayTester::processContact(
 {
     if (state_ == State::WaitingForOn && closed)
     {
-        storeMeasurement(RelayTransition::TurnOn, changedAtUs - commandAtUs_);
+        if (!warmup_)
+        {
+            storeMeasurement(
+                RelayTransition::TurnOn,
+                changedAtUs - commandAtUs_
+            );
+        }
+
         state_ = State::HoldingOn;
         stateStartedAtUs_ = nowUs;
     }
     else if (state_ == State::WaitingForOff && !closed)
     {
-        storeMeasurement(RelayTransition::TurnOff, changedAtUs - commandAtUs_);
+        if (warmup_)
+        {
+            warmup_ = false;
+        }
+        else
+        {
+            storeMeasurement(
+                RelayTransition::TurnOff,
+                changedAtUs - commandAtUs_
+            );
+        }
 
         if (onCount_ >= measurementCount_ && offCount_ >= measurementCount_)
         {

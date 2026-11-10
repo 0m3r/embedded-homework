@@ -84,6 +84,7 @@ private:
     uint8_t offCount_ = 0;
     uint64_t onTotalUs_ = 0;
     uint64_t offTotalUs_ = 0;
+    bool warmup_ = true;
 
     RelayMeasurement measurement_{};
     bool measurementReady_ = false;
