@@ -34,7 +34,7 @@ private:
     static volatile uint32_t edgeAtUs_;
 
     bool consumeInterrupt(uint32_t& edgeAtUs);
-    bool debounce(uint32_t nowUs, RelayContactEvent& event);
+    bool debounce(uint32_t nowUs);
 
     const uint8_t controlPin_;
     const uint8_t feedbackPin_;
