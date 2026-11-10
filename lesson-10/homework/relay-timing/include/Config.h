@@ -5,7 +5,7 @@
 struct Config
 {
     static constexpr uint8_t RelayControlPin = 16;
-    static constexpr uint8_t RelayContactPin = 18;
+    static constexpr uint8_t RelayFeedbackPin = 18;
 
     static constexpr uint8_t RelayMeasurementCount = 10;
     static constexpr uint32_t RelayDebounceUs = 10000;

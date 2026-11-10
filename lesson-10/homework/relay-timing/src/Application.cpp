@@ -6,11 +6,14 @@
 
 Application::Application()
     : logger_(Serial, Config::SerialBaud),
-      relayTester_(
+      relay_(
           Config::RelayControlPin,
-          Config::RelayContactPin,
+          Config::RelayFeedbackPin,
+          Config::RelayDebounceUs
+      ),
+      relayTester_(
+          relay_,
           Config::RelayMeasurementCount,
-          Config::RelayDebounceUs,
           Config::RelaySettleUs,
           Config::RelayTimeoutUs
       )

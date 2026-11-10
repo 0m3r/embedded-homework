@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include "Relay.h"
+
 enum class RelayTransition : uint8_t
 {
     TurnOn,
@@ -19,17 +21,13 @@ class RelayTester
 {
 public:
     constexpr RelayTester(
-        uint8_t controlPin,
-        uint8_t contactPin,
+        Relay& relay,
         uint8_t measurementCount,
-        uint32_t debounceUs,
         uint32_t settleUs,
         uint32_t timeoutUs
     )
-        : controlPin_(controlPin),
-          contactPin_(contactPin),
+        : relay_(relay),
           measurementCount_(measurementCount),
-          debounceUs_(debounceUs),
           settleUs_(settleUs),
           timeoutUs_(timeoutUs)
     {
@@ -56,27 +54,16 @@ private:
         Failed
     };
 
-    static void onContactChangeIsr();
-    static volatile bool contactChanged_;
-    static volatile uint32_t contactEdgeAtUs_;
-
-    bool updateContact(uint32_t nowUs, bool& closed, uint32_t& changedAtUs);
-    void processContact(bool closed, uint32_t changedAtUs, uint32_t nowUs);
+    void processContact(const RelayContactEvent& event, uint32_t nowUs);
     void setRelay(bool enabled, uint32_t nowUs);
     void storeMeasurement(RelayTransition transition, uint32_t durationUs);
 
-    const uint8_t controlPin_;
-    const uint8_t contactPin_;
+    Relay& relay_;
     const uint8_t measurementCount_;
-    const uint32_t debounceUs_;
     const uint32_t settleUs_;
     const uint32_t timeoutUs_;
 
     State state_ = State::SettlingBeforeOn;
-    bool stableClosed_ = false;
-    bool candidatePending_ = false;
-    bool candidateClosed_ = false;
-    uint32_t candidateAtUs_ = 0;
     uint32_t stateStartedAtUs_ = 0;
     uint32_t commandAtUs_ = 0;
 
