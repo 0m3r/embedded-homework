@@ -27,9 +27,9 @@ private:
     const uint8_t pin_;
     const uint32_t debounceUs_;
 
-    bool stableClosed_ = false;
-    bool candidatePending_ = false;
-    bool candidateClosed_ = false;
-    uint32_t candidateAtUs_ = 0;
+    bool closed_ = false;
+    bool pending_ = false;
+    bool pendingClosed_ = false;
+    uint32_t pendingAtUs_ = 0;
     uint32_t changedAtUs_ = 0;
 };

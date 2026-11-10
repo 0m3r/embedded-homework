@@ -14,7 +14,7 @@ void IRAM_ATTR RelayContact::onChangeIsr()
 void RelayContact::init()
 {
     pinMode(pin_, INPUT_PULLUP);
-    stableClosed_ = digitalRead(pin_) == LOW;
+    closed_ = digitalRead(pin_) == LOW;
 
     attachInterrupt(
         digitalPinToInterrupt(pin_),
@@ -28,9 +28,9 @@ bool RelayContact::tick(uint32_t nowUs)
     uint32_t edgeAtUs = 0;
     if (consumeInterrupt(edgeAtUs))
     {
-        candidateClosed_ = digitalRead(pin_) == LOW;
-        candidateAtUs_ = edgeAtUs;
-        candidatePending_ = true;
+        pendingClosed_ = digitalRead(pin_) == LOW;
+        pendingAtUs_ = edgeAtUs;
+        pending_ = true;
     }
 
     if (!debounce(nowUs))
@@ -38,13 +38,13 @@ bool RelayContact::tick(uint32_t nowUs)
         return false;
     }
 
-    changedAtUs_ = candidateAtUs_;
+    changedAtUs_ = pendingAtUs_;
     return true;
 }
 
 bool RelayContact::isClosed() const
 {
-    return stableClosed_;
+    return closed_;
 }
 
 uint32_t RelayContact::changedAtUs() const
@@ -64,19 +64,19 @@ bool RelayContact::consumeInterrupt(uint32_t& edgeAtUs)
 
 bool RelayContact::debounce(uint32_t nowUs)
 {
-    if (!candidatePending_ || nowUs - candidateAtUs_ < debounceUs_)
+    if (!pending_ || nowUs - pendingAtUs_ < debounceUs_)
     {
         return false;
     }
 
     const bool currentClosed = digitalRead(pin_) == LOW;
-    candidatePending_ = false;
+    pending_ = false;
 
-    if (currentClosed != candidateClosed_ || currentClosed == stableClosed_)
+    if (currentClosed != pendingClosed_ || currentClosed == closed_)
     {
         return false;
     }
 
-    stableClosed_ = currentClosed;
+    closed_ = currentClosed;
     return true;
 }
