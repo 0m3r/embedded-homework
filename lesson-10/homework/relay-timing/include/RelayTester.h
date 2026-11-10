@@ -18,35 +18,26 @@ struct RelayMeasurement
     uint32_t durationUs;
 };
 
-struct RelayTestConfig
-{
-    uint8_t measurementCount;
-    uint32_t settleUs;
-    uint32_t timeoutUs;
-};
-
-struct RelayStatistics
-{
-    uint8_t completedCycles = 0;
-    uint64_t onTotalUs = 0;
-    uint64_t offTotalUs = 0;
-};
-
 class RelayTester
 {
 public:
     constexpr RelayTester(
         Relay& relay,
         RelayContact& contact,
-        RelayTestConfig config
+        uint8_t measurementCount,
+        uint32_t settleUs,
+        uint32_t timeoutUs
     )
         : relay_(relay),
           contact_(contact),
-          config_(config)
+          measurementCount_(measurementCount),
+          settleUs_(settleUs),
+          timeoutUs_(timeoutUs)
     {
     }
 
     void init(uint32_t nowUs);
+    void restart(uint32_t nowUs);
     bool tick(uint32_t nowUs, RelayMeasurement& measurement);
 
     bool complete() const;
@@ -55,32 +46,33 @@ public:
     uint32_t averageOffUs() const;
 
 private:
-    enum class State : uint8_t
+    enum class Phase : uint8_t
     {
-        SettlingBeforeOn,
-        WaitingForOn,
-        HoldingOn,
-        WaitingForOff,
-        HoldingOff,
+        TurnOn,
+        TurnOff,
         Complete,
         Failed
     };
 
-    bool processContact(uint32_t nowUs, RelayMeasurement& measurement);
-    void setRelay(bool enabled, uint32_t nowUs);
-    void recordMeasurement(
-        RelayTransition transition,
-        uint32_t durationUs,
+    void startTransition(uint32_t nowUs);
+    bool finishTransition(
+        uint32_t nowUs,
         RelayMeasurement& measurement
     );
 
     Relay& relay_;
     RelayContact& contact_;
-    const RelayTestConfig config_;
-    RelayStatistics statistics_;
+    const uint8_t measurementCount_;
+    const uint32_t settleUs_;
+    const uint32_t timeoutUs_;
 
-    State state_ = State::SettlingBeforeOn;
-    uint32_t stateStartedAtUs_ = 0;
-    uint32_t commandAtUs_ = 0;
+    Phase phase_ = Phase::TurnOn;
+    bool waiting_ = false;
     bool warmup_ = true;
+    uint8_t cycle_ = 0;
+
+    uint32_t commandAtUs_ = 0;
+    uint32_t pauseAtUs_ = 0;
+    uint64_t onTotalUs_ = 0;
+    uint64_t offTotalUs_ = 0;
 };

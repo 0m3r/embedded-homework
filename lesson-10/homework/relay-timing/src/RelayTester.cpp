@@ -4,7 +4,20 @@ void RelayTester::init(uint32_t nowUs)
 {
     relay_.init();
     contact_.init();
-    stateStartedAtUs_ = nowUs;
+    pauseAtUs_ = nowUs;
+}
+
+void RelayTester::restart(uint32_t nowUs)
+{
+    relay_.off();
+    phase_ = Phase::TurnOn;
+    waiting_ = false;
+    warmup_ = true;
+    cycle_ = 0;
+    commandAtUs_ = 0;
+    pauseAtUs_ = nowUs;
+    onTotalUs_ = 0;
+    offTotalUs_ = 0;
 }
 
 bool RelayTester::tick(
@@ -12,133 +25,69 @@ bool RelayTester::tick(
     RelayMeasurement& measurement
 )
 {
-    bool measured = false;
+    const bool contactChanged = contact_.tick(nowUs);
 
-    if (contact_.tick(nowUs))
+    if (phase_ == Phase::Complete || phase_ == Phase::Failed)
     {
-        measured = processContact(nowUs, measurement);
+        return false;
     }
 
-    switch (state_)
+    if (waiting_)
     {
-        case State::SettlingBeforeOn:
-        case State::HoldingOff:
-            if (nowUs - stateStartedAtUs_ >= config_.settleUs)
-            {
-                setRelay(true, nowUs);
-            }
-            break;
+        const bool expectedClosed = phase_ == Phase::TurnOn;
 
-        case State::HoldingOn:
-            if (nowUs - stateStartedAtUs_ >= config_.settleUs)
-            {
-                setRelay(false, nowUs);
-            }
-            break;
+        if (contactChanged && contact_.isClosed() == expectedClosed)
+        {
+            return finishTransition(nowUs, measurement);
+        }
 
-        case State::WaitingForOn:
-        case State::WaitingForOff:
-            if (nowUs - commandAtUs_ >= config_.timeoutUs)
-            {
-                relay_.off();
-                state_ = State::Failed;
-            }
-            break;
+        if (nowUs - commandAtUs_ >= timeoutUs_)
+        {
+            relay_.off();
+            phase_ = Phase::Failed;
+        }
 
-        case State::Complete:
-        case State::Failed:
-            break;
+        return false;
     }
 
-    return measured;
+    if (nowUs - pauseAtUs_ >= settleUs_)
+    {
+        startTransition(nowUs);
+    }
+
+    return false;
 }
 
 bool RelayTester::complete() const
 {
-    return state_ == State::Complete;
+    return phase_ == Phase::Complete;
 }
 
 bool RelayTester::failed() const
 {
-    return state_ == State::Failed;
+    return phase_ == Phase::Failed;
 }
 
 uint32_t RelayTester::averageOnUs() const
 {
-    return statistics_.completedCycles == 0
+    return cycle_ == 0
         ? 0
-        : static_cast<uint32_t>(
-            statistics_.onTotalUs / statistics_.completedCycles
-        );
+        : static_cast<uint32_t>(onTotalUs_ / cycle_);
 }
 
 uint32_t RelayTester::averageOffUs() const
 {
-    return statistics_.completedCycles == 0
+    return cycle_ == 0
         ? 0
-        : static_cast<uint32_t>(
-            statistics_.offTotalUs / statistics_.completedCycles
-        );
+        : static_cast<uint32_t>(offTotalUs_ / cycle_);
 }
 
-bool RelayTester::processContact(
-    uint32_t nowUs,
-    RelayMeasurement& measurement
-)
-{
-    bool measured = false;
-
-    if (state_ == State::WaitingForOn && contact_.isClosed())
-    {
-        if (!warmup_)
-        {
-            recordMeasurement(
-                RelayTransition::TurnOn,
-                contact_.changedAtUs() - commandAtUs_,
-                measurement
-            );
-            measured = true;
-        }
-
-        state_ = State::HoldingOn;
-        stateStartedAtUs_ = nowUs;
-    }
-    else if (state_ == State::WaitingForOff && !contact_.isClosed())
-    {
-        if (warmup_)
-        {
-            warmup_ = false;
-        }
-        else
-        {
-            recordMeasurement(
-                RelayTransition::TurnOff,
-                contact_.changedAtUs() - commandAtUs_,
-                measurement
-            );
-            measured = true;
-        }
-
-        if (statistics_.completedCycles >= config_.measurementCount)
-        {
-            state_ = State::Complete;
-        }
-        else
-        {
-            state_ = State::HoldingOff;
-            stateStartedAtUs_ = nowUs;
-        }
-    }
-
-    return measured;
-}
-
-void RelayTester::setRelay(bool enabled, uint32_t nowUs)
+void RelayTester::startTransition(uint32_t nowUs)
 {
     commandAtUs_ = nowUs;
-    state_ = enabled ? State::WaitingForOn : State::WaitingForOff;
+    waiting_ = true;
 
-    if (enabled)
+    if (phase_ == Phase::TurnOn)
     {
         relay_.on();
     }
@@ -148,23 +97,52 @@ void RelayTester::setRelay(bool enabled, uint32_t nowUs)
     }
 }
 
-void RelayTester::recordMeasurement(
-    RelayTransition transition,
-    uint32_t durationUs,
+bool RelayTester::finishTransition(
+    uint32_t nowUs,
     RelayMeasurement& measurement
 )
 {
-    const uint8_t number = statistics_.completedCycles + 1;
+    const uint32_t durationUs = contact_.changedAtUs() - commandAtUs_;
+    const bool measured = !warmup_;
 
-    if (transition == RelayTransition::TurnOn)
+    if (measured)
     {
-        statistics_.onTotalUs += durationUs;
+        measurement = {
+            phase_ == Phase::TurnOn
+                ? RelayTransition::TurnOn
+                : RelayTransition::TurnOff,
+            static_cast<uint8_t>(cycle_ + 1),
+            durationUs
+        };
+
+        if (phase_ == Phase::TurnOn)
+        {
+            onTotalUs_ += durationUs;
+        }
+        else
+        {
+            offTotalUs_ += durationUs;
+            ++cycle_;
+        }
+    }
+
+    if (phase_ == Phase::TurnOn)
+    {
+        phase_ = Phase::TurnOff;
+    }
+    else if (warmup_)
+    {
+        warmup_ = false;
+        phase_ = Phase::TurnOn;
     }
     else
     {
-        statistics_.offTotalUs += durationUs;
-        ++statistics_.completedCycles;
+        phase_ = cycle_ >= measurementCount_
+            ? Phase::Complete
+            : Phase::TurnOn;
     }
 
-    measurement = {transition, number, durationUs};
+    waiting_ = false;
+    pauseAtUs_ = nowUs;
+    return measured;
 }

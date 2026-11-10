@@ -14,11 +14,9 @@ Application::Application()
       relayTester_(
           relay_,
           contact_,
-          {
-              Config::RelayMeasurementCount,
-              Config::RelaySettleUs,
-              Config::RelayTimeoutUs
-          }
+          Config::RelayMeasurementCount,
+          Config::RelaySettleUs,
+          Config::RelayTimeoutUs
       )
 {
 }
@@ -35,8 +33,11 @@ void Application::setup()
 
 void Application::loop()
 {
+    const uint32_t nowUs = micros();
+    const uint32_t nowMs = millis();
+
     RelayMeasurement measurement{};
-    if (relayTester_.tick(micros(), measurement))
+    if (relayTester_.tick(nowUs, measurement))
     {
         reportMeasurement(measurement);
     }
@@ -44,6 +45,7 @@ void Application::loop()
     if (relayTester_.complete() && !summaryPrinted_)
     {
         summaryPrinted_ = true;
+        completedAtMs_ = nowMs;
         logger_.logf(
             "Averages: ON = %lu us (%.3f ms), OFF = %lu us (%.3f ms)\n",
             static_cast<unsigned long>(relayTester_.averageOnUs()),
@@ -51,6 +53,15 @@ void Application::loop()
             static_cast<unsigned long>(relayTester_.averageOffUs()),
             relayTester_.averageOffUs() / 1000.0
         );
+    }
+
+    if (summaryPrinted_ &&
+        nowMs - completedAtMs_ >= Config::RepeatIntervalMs)
+    {
+        summaryPrinted_ = false;
+        errorPrinted_ = false;
+        relayTester_.restart(nowUs);
+        logger_.log("Restarting relay measurements...");
     }
 
     if (relayTester_.failed() && !errorPrinted_)

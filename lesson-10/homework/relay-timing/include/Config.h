@@ -11,6 +11,7 @@ struct Config
     static constexpr uint32_t RelayDebounceUs = 10000;
     static constexpr uint32_t RelaySettleUs = 500000;
     static constexpr uint32_t RelayTimeoutUs = 2000000;
+    static constexpr uint32_t RepeatIntervalMs = 60000;
     static constexpr uint32_t SerialBaud = 115200;
 };
 
