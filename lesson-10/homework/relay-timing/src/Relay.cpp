@@ -41,6 +41,12 @@ bool Relay::tick(uint32_t nowUs, RelayContactEvent& event)
         candidatePending_ = true;
     }
 
+    return debounce(nowUs, event);
+}
+
+bool Relay::debounce(uint32_t nowUs, RelayContactEvent& event)
+{
+
     if (!candidatePending_ || nowUs - candidateAtUs_ < debounceUs_)
     {
         return false;
