@@ -10,23 +10,22 @@ constexpr uint8_t PatternCount = sizeof(Patterns) / sizeof(Patterns[0]);
 
 void UartExperiment::init()
 {
-    serial_.begin(baudRate_, SERIAL_8N1, -1, txPin_);
+    uart_.begin(baudRate_, SERIAL_8N1, -1, txPin_);
 }
 
-void UartExperiment::update(uint32_t nowMs)
+void UartExperiment::update()
 {
-    if (nowMs - lastSentAtMs_ < intervalMs_)
+    if (!timer_.ready())
     {
         return;
     }
 
-    lastSentAtMs_ = nowMs;
-    currentPattern_ = Patterns[patternIndex_];
-    serial_.write(currentPattern_);
-    patternIndex_ = (patternIndex_ + 1) % PatternCount;
+    current_ = Patterns[index_];
+    uart_.write(current_);
+    index_ = (index_ + 1) % PatternCount;
 }
 
 uint8_t UartExperiment::currentPattern() const
 {
-    return currentPattern_;
+    return current_;
 }

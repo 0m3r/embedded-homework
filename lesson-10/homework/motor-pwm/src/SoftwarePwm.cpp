@@ -2,11 +2,11 @@
 
 #include <Arduino.h>
 
-void SoftwarePwm::init(uint32_t nowUs)
+void SoftwarePwm::init()
 {
     pinMode(pin_, OUTPUT);
     digitalWrite(pin_, LOW);
-    cycleStartedAtUs_ = nowUs;
+    cycleStartedAtUs_ = clock_.nowUs();
 }
 
 void SoftwarePwm::setDuty(uint8_t duty)
@@ -14,8 +14,9 @@ void SoftwarePwm::setDuty(uint8_t duty)
     duty_ = duty;
 }
 
-void SoftwarePwm::update(uint32_t nowUs)
+void SoftwarePwm::update()
 {
+    const uint32_t nowUs = clock_.nowUs();
     const uint32_t elapsedUs = nowUs - cycleStartedAtUs_;
     if (elapsedUs >= periodUs_)
     {
@@ -26,7 +27,7 @@ void SoftwarePwm::update(uint32_t nowUs)
     const uint32_t highTimeUs =
         (periodUs_ * static_cast<uint32_t>(duty_)) / 255U;
 
-    write(duty_ != 0 && (duty_ == 255 || positionUs < highTimeUs));
+    setState(duty_ != 0 && (duty_ == 255 || positionUs < highTimeUs));
 }
 
 uint8_t SoftwarePwm::duty() const
@@ -34,13 +35,13 @@ uint8_t SoftwarePwm::duty() const
     return duty_;
 }
 
-void SoftwarePwm::write(bool high)
+void SoftwarePwm::setState(bool state)
 {
-    if (high == outputHigh_)
+    if (state == state_)
     {
         return;
     }
 
-    outputHigh_ = high;
-    digitalWrite(pin_, high ? HIGH : LOW);
+    state_ = state;
+    digitalWrite(pin_, state ? HIGH : LOW);
 }

@@ -2,26 +2,34 @@
 
 #include <stdint.h>
 
+#include "Clock.h"
+
 class SoftwarePwm
 {
 public:
-    constexpr SoftwarePwm(uint8_t pin, uint32_t periodUs)
-        : pin_(pin),
+    constexpr SoftwarePwm(
+        const Clock& clock,
+        uint8_t pin,
+        uint32_t periodUs
+    )
+        : clock_(clock),
+          pin_(pin),
           periodUs_(periodUs)
     {
     }
 
-    void init(uint32_t nowUs);
+    void init();
     void setDuty(uint8_t duty);
-    void update(uint32_t nowUs);
+    void update();
     uint8_t duty() const;
 
 private:
-    void write(bool high);
+    void setState(bool state);
 
+    const Clock& clock_;
     const uint8_t pin_;
     const uint32_t periodUs_;
     uint32_t cycleStartedAtUs_ = 0;
     uint8_t duty_ = 0;
-    bool outputHigh_ = false;
+    bool state_ = false;
 };

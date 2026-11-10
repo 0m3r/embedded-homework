@@ -2,23 +2,29 @@
 
 #include <stdint.h>
 
+#include "Clock.h"
+#include "Timer.h"
+
 class Potentiometer
 {
 public:
-    constexpr Potentiometer(uint8_t pin, uint32_t sampleIntervalMs)
+    constexpr Potentiometer(
+        const Clock& clock,
+        uint8_t pin,
+        uint32_t sampleIntervalMs
+    )
         : pin_(pin),
-          sampleIntervalMs_(sampleIntervalMs)
+          timer_(clock, sampleIntervalMs)
     {
     }
 
     void init();
-    bool update(uint32_t nowMs);
+    bool update();
     uint16_t value() const;
     uint8_t duty() const;
 
 private:
     const uint8_t pin_;
-    const uint32_t sampleIntervalMs_;
-    uint32_t lastSampleAtMs_ = 0;
+    Timer timer_;
     uint16_t value_ = 0;
 };

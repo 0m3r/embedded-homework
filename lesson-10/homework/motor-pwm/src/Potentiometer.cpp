@@ -9,14 +9,13 @@ void Potentiometer::init()
     analogSetPinAttenuation(pin_, ADC_11db);
 }
 
-bool Potentiometer::update(uint32_t nowMs)
+bool Potentiometer::update()
 {
-    if (nowMs - lastSampleAtMs_ < sampleIntervalMs_)
+    if (!timer_.ready())
     {
         return false;
     }
 
-    lastSampleAtMs_ = nowMs;
     value_ = analogRead(pin_);
     return true;
 }

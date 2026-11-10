@@ -2,10 +2,12 @@
 
 #include <stdint.h>
 
+#include "Clock.h"
 #include "Logger.h"
 #include "Potentiometer.h"
 #include "SoftwarePwm.h"
 #include "UartExperiment.h"
+#include "Timer.h"
 
 class Application
 {
@@ -16,9 +18,10 @@ public:
     void loop();
 
 private:
+    Clock clock_;
     Logger logger_;
     Potentiometer potentiometer_;
     SoftwarePwm motorPwm_;
     UartExperiment uartExperiment_;
-    uint32_t lastPrintAtMs_ = 0;
+    Timer printTimer_;
 };
