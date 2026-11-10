@@ -13,9 +13,11 @@ Application::Application()
       ),
       relayTester_(
           relay_,
-          Config::RelayMeasurementCount,
-          Config::RelaySettleUs,
-          Config::RelayTimeoutUs
+          {
+              Config::RelayMeasurementCount,
+              Config::RelaySettleUs,
+              Config::RelayTimeoutUs
+          }
       )
 {
 }
@@ -32,10 +34,8 @@ void Application::setup()
 
 void Application::loop()
 {
-    relayTester_.update(micros());
-
     RelayMeasurement measurement{};
-    if (relayTester_.takeMeasurement(measurement))
+    if (relayTester_.update(micros(), measurement))
     {
         reportMeasurement(measurement);
     }

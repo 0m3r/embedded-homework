@@ -6,26 +6,31 @@ void RelayTester::init(uint32_t nowUs)
     stateStartedAtUs_ = nowUs;
 }
 
-void RelayTester::update(uint32_t nowUs)
+bool RelayTester::update(
+    uint32_t nowUs,
+    RelayMeasurement& measurement
+)
 {
+    bool measured = false;
     RelayContactEvent event{};
+
     if (relay_.update(nowUs, event))
     {
-        processContact(event, nowUs);
+        measured = processContact(event, nowUs, measurement);
     }
 
     switch (state_)
     {
         case State::SettlingBeforeOn:
         case State::HoldingOff:
-            if (nowUs - stateStartedAtUs_ >= settleUs_)
+            if (nowUs - stateStartedAtUs_ >= config_.settleUs)
             {
                 setRelay(true, nowUs);
             }
             break;
 
         case State::HoldingOn:
-            if (nowUs - stateStartedAtUs_ >= settleUs_)
+            if (nowUs - stateStartedAtUs_ >= config_.settleUs)
             {
                 setRelay(false, nowUs);
             }
@@ -33,7 +38,7 @@ void RelayTester::update(uint32_t nowUs)
 
         case State::WaitingForOn:
         case State::WaitingForOff:
-            if (nowUs - commandAtUs_ >= timeoutUs_)
+            if (nowUs - commandAtUs_ >= config_.timeoutUs)
             {
                 relay_.setEnabled(false);
                 state_ = State::Failed;
@@ -44,18 +49,8 @@ void RelayTester::update(uint32_t nowUs)
         case State::Failed:
             break;
     }
-}
 
-bool RelayTester::takeMeasurement(RelayMeasurement& measurement)
-{
-    if (!measurementReady_)
-    {
-        return false;
-    }
-
-    measurement = measurement_;
-    measurementReady_ = false;
-    return true;
+    return measured;
 }
 
 bool RelayTester::complete() const
@@ -70,27 +65,40 @@ bool RelayTester::failed() const
 
 uint32_t RelayTester::averageOnUs() const
 {
-    return onCount_ == 0 ? 0 : static_cast<uint32_t>(onTotalUs_ / onCount_);
+    return statistics_.completedCycles == 0
+        ? 0
+        : static_cast<uint32_t>(
+            statistics_.onTotalUs / statistics_.completedCycles
+        );
 }
 
 uint32_t RelayTester::averageOffUs() const
 {
-    return offCount_ == 0 ? 0 : static_cast<uint32_t>(offTotalUs_ / offCount_);
+    return statistics_.completedCycles == 0
+        ? 0
+        : static_cast<uint32_t>(
+            statistics_.offTotalUs / statistics_.completedCycles
+        );
 }
 
-void RelayTester::processContact(
+bool RelayTester::processContact(
     const RelayContactEvent& event,
-    uint32_t nowUs
+    uint32_t nowUs,
+    RelayMeasurement& measurement
 )
 {
+    bool measured = false;
+
     if (state_ == State::WaitingForOn && event.closed)
     {
         if (!warmup_)
         {
-            storeMeasurement(
+            recordMeasurement(
                 RelayTransition::TurnOn,
-                event.changedAtUs - commandAtUs_
+                event.changedAtUs - commandAtUs_,
+                measurement
             );
+            measured = true;
         }
 
         state_ = State::HoldingOn;
@@ -104,13 +112,15 @@ void RelayTester::processContact(
         }
         else
         {
-            storeMeasurement(
+            recordMeasurement(
                 RelayTransition::TurnOff,
-                event.changedAtUs - commandAtUs_
+                event.changedAtUs - commandAtUs_,
+                measurement
             );
+            measured = true;
         }
 
-        if (onCount_ >= measurementCount_ && offCount_ >= measurementCount_)
+        if (statistics_.completedCycles >= config_.measurementCount)
         {
             state_ = State::Complete;
         }
@@ -120,6 +130,8 @@ void RelayTester::processContact(
             stateStartedAtUs_ = nowUs;
         }
     }
+
+    return measured;
 }
 
 void RelayTester::setRelay(bool enabled, uint32_t nowUs)
@@ -129,24 +141,23 @@ void RelayTester::setRelay(bool enabled, uint32_t nowUs)
     relay_.setEnabled(enabled);
 }
 
-void RelayTester::storeMeasurement(
+void RelayTester::recordMeasurement(
     RelayTransition transition,
-    uint32_t durationUs
+    uint32_t durationUs,
+    RelayMeasurement& measurement
 )
 {
-    uint8_t number = 0;
+    const uint8_t number = statistics_.completedCycles + 1;
 
     if (transition == RelayTransition::TurnOn)
     {
-        onTotalUs_ += durationUs;
-        number = ++onCount_;
+        statistics_.onTotalUs += durationUs;
     }
     else
     {
-        offTotalUs_ += durationUs;
-        number = ++offCount_;
+        statistics_.offTotalUs += durationUs;
+        ++statistics_.completedCycles;
     }
 
-    measurement_ = {transition, number, durationUs};
-    measurementReady_ = true;
+    measurement = {transition, number, durationUs};
 }
