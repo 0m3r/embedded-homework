@@ -3,11 +3,11 @@
 #include <Arduino.h>
 
 volatile bool RelayContact::changed_ = false;
-volatile uint32_t RelayContact::edgeAtUs_ = 0;
+volatile uint32_t RelayContact::changedAtUs_ = 0;
 
 void IRAM_ATTR RelayContact::onChangeIsr()
 {
-    edgeAtUs_ = micros();
+    changedAtUs_ = micros();
     changed_ = true;
 }
 
@@ -25,11 +25,11 @@ void RelayContact::init()
 
 bool RelayContact::tick(uint32_t nowUs)
 {
-    uint32_t edgeAtUs = 0;
-    if (consumeInterrupt(edgeAtUs))
+    uint32_t changedAtUs = 0;
+    if (consumeInterrupt(changedAtUs))
     {
         pendingClosed_ = digitalRead(pin_) == LOW;
-        pendingAtUs_ = edgeAtUs;
+        pendingAtUs_ = changedAtUs;
         pending_ = true;
     }
 
@@ -38,7 +38,6 @@ bool RelayContact::tick(uint32_t nowUs)
         return false;
     }
 
-    changedAtUs_ = pendingAtUs_;
     return true;
 }
 
@@ -49,14 +48,14 @@ bool RelayContact::isClosed() const
 
 uint32_t RelayContact::changedAtUs() const
 {
-    return changedAtUs_;
+    return pendingAtUs_;
 }
 
-bool RelayContact::consumeInterrupt(uint32_t& edgeAtUs)
+bool RelayContact::consumeInterrupt(uint32_t& changedAtUs)
 {
     noInterrupts();
     const bool changed = changed_;
-    edgeAtUs = edgeAtUs_;
+    changedAtUs = changedAtUs_;
     changed_ = false;
     interrupts();
     return changed;

@@ -19,9 +19,9 @@ public:
 private:
     static void onChangeIsr();
     static volatile bool changed_;
-    static volatile uint32_t edgeAtUs_;
+    static volatile uint32_t changedAtUs_;
 
-    bool consumeInterrupt(uint32_t& edgeAtUs);
+    bool consumeInterrupt(uint32_t& changedAtUs);
     bool debounce(uint32_t nowUs);
 
     const uint8_t pin_;
@@ -31,5 +31,4 @@ private:
     bool pending_ = false;
     bool pendingClosed_ = false;
     uint32_t pendingAtUs_ = 0;
-    uint32_t changedAtUs_ = 0;
 };
