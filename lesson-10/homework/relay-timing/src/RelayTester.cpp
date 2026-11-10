@@ -6,7 +6,7 @@ void RelayTester::init(uint32_t nowUs)
     stateStartedAtUs_ = nowUs;
 }
 
-bool RelayTester::update(
+bool RelayTester::tick(
     uint32_t nowUs,
     RelayMeasurement& measurement
 )
@@ -14,7 +14,7 @@ bool RelayTester::update(
     bool measured = false;
     RelayContactEvent event{};
 
-    if (relay_.update(nowUs, event))
+    if (relay_.tick(nowUs, event))
     {
         measured = processContact(event, nowUs, measurement);
     }

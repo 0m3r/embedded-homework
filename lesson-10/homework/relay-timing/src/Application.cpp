@@ -35,7 +35,7 @@ void Application::setup()
 void Application::loop()
 {
     RelayMeasurement measurement{};
-    if (relayTester_.update(micros(), measurement))
+    if (relayTester_.tick(micros(), measurement))
     {
         reportMeasurement(measurement);
     }

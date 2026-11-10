@@ -41,7 +41,7 @@ public:
     }
 
     void init(uint32_t nowUs);
-    bool update(uint32_t nowUs, RelayMeasurement& measurement);
+    bool tick(uint32_t nowUs, RelayMeasurement& measurement);
 
     bool complete() const;
     bool failed() const;

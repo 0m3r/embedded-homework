@@ -31,7 +31,7 @@ void Relay::setEnabled(bool enabled)
     digitalWrite(controlPin_, enabled ? HIGH : LOW);
 }
 
-bool Relay::update(uint32_t nowUs, RelayContactEvent& event)
+bool Relay::tick(uint32_t nowUs, RelayContactEvent& event)
 {
     uint32_t edgeAtUs = 0;
     if (consumeInterrupt(edgeAtUs))

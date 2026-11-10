@@ -24,7 +24,7 @@ public:
 
     void init();
     void setEnabled(bool enabled);
-    bool update(uint32_t nowUs, RelayContactEvent& event);
+    bool tick(uint32_t nowUs, RelayContactEvent& event);
 
 private:
     static void onContactChangeIsr();
