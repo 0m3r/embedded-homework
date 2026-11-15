@@ -12,3 +12,9 @@ STM32F411CE:
 - логи натискань через USB CDC Virtual COM Port.
 
 ST-Link використовується для прошивання через SWD. USB-C плати передає логи.
+
+## Домашня робота
+
+[`homework/esp32`](homework/esp32) — порівняння debounce для Freenove
+ESP32-S3: без debounce, time-based, state-based, polling та hardware RC.
+README містить результати вимірювань, порівняльну таблицю й висновки.
