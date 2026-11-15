@@ -1,4 +1,4 @@
-#include "Application.hpp"
+#include "Application/Application.hpp"
 
 namespace {
 Application application;
@@ -7,31 +7,25 @@ Application application;
 void Application::init()
 {
     clock_.update();
-    redLed_.off();
-    greenLed_.off();
-    redButton_.init();
-    greenButton_.init();
+    softwareExperiment_.init();
+    hardwareRcExperiment_.init();
+    logger_.log("STM32 debounce comparison ready\r\n");
 }
 
 void Application::update()
 {
     clock_.update();
 
-    if (redButton_.wasPressed()) {
-        redLed_.toggle();
-        logger_.log("Red button pressed\r\n");
-    }
+    softwareExperiment_.update(clock_.now());
+    hardwareRcExperiment_.update(clock_.now());
 
-    if (greenButton_.wasPressed()) {
-        greenLed_.toggle();
-        logger_.log("Green button pressed\r\n");
-    }
+    logger_.update();
 }
 
 void Application::onButtonInterrupt(std::uint16_t pin)
 {
-    redButton_.onInterrupt(pin);
-    greenButton_.onInterrupt(pin);
+    softwareExperiment_.onInterrupt(pin);
+    hardwareRcExperiment_.onInterrupt(pin);
 }
 
 extern "C" void appInit()
