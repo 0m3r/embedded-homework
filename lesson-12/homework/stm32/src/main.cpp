@@ -1,5 +1,5 @@
-#include "Stm32/Application/Application.hpp"
-#include "Stm32/Platform/Board.hpp"
+#include "Application/Application.hpp"
+#include "Platform/Board.hpp"
 
 int main()
 {

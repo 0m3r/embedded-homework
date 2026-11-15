@@ -18,3 +18,7 @@ ST-Link використовується для прошивання через 
 [`homework/esp32`](homework/esp32) — порівняння debounce для Freenove
 ESP32-S3: без debounce, time-based, state-based, polling та hardware RC.
 README містить результати вимірювань, порівняльну таблицю й висновки.
+
+[`homework/stm32`](homework/stm32) — те саме дослідження для Black Pill
+STM32F411CE з software-кнопкою `PA5`, hardware RC на `PB6`, чотирма
+debounce-стратегіями та USB CDC логуванням.

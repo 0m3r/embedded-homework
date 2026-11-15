@@ -1,4 +1,4 @@
-#include "Stm32/Hardware/Clock.hpp"
+#include "Clock.hpp"
 
 #include "stm32f4xx_hal.h"
 
