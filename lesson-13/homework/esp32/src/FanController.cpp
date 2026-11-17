@@ -16,7 +16,7 @@ FanController::FanController(std::uint8_t pin,
 void FanController::begin()
 {
     pinMode(pin_, OUTPUT);
-    write(false);
+    off();
 }
 
 void ARDUINO_ISR_ATTR FanController::update()
@@ -25,16 +25,14 @@ void ARDUINO_ISR_ATTR FanController::update()
     elapsedSeconds_ = elapsedSeconds_ + 1U;
 
     if (running_ && elapsedSeconds_ >= runDurationSeconds_) {
-        running_ = false;
-        write(false);
+        off();
 
         if (pendingStops_ < std::numeric_limits<std::uint32_t>::max()) {
             pendingStops_ = pendingStops_ + 1U;
         }
     } else if (!running_ && elapsedSeconds_ >= cyclePeriodSeconds_) {
         elapsedSeconds_ = 0;
-        running_ = true;
-        write(true);
+        on();
 
         if (pendingStarts_ < std::numeric_limits<std::uint32_t>::max()) {
             pendingStarts_ = pendingStarts_ + 1U;
@@ -54,8 +52,24 @@ FanController::Events FanController::takeEvents()
     return events;
 }
 
+void ARDUINO_ISR_ATTR FanController::on()
+{
+    write(true);
+}
+
+void ARDUINO_ISR_ATTR FanController::off()
+{
+    write(false);
+}
+
+void ARDUINO_ISR_ATTR FanController::toggle()
+{
+    write(!running_);
+}
+
 void ARDUINO_ISR_ATTR FanController::write(bool enabled)
 {
+    running_ = enabled;
     const bool high = enabled == activeHigh_;
     digitalWrite(pin_, high ? HIGH : LOW);
 }

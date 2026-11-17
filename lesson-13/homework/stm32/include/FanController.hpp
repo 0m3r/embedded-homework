@@ -22,6 +22,9 @@ public:
     Events takeEvents();
 
 private:
+    void on();
+    void off();
+    void toggle();
     void write(bool enabled);
 
     GPIO_TypeDef* const port_;

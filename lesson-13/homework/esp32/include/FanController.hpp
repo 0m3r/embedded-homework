@@ -21,6 +21,9 @@ public:
     Events takeEvents();
 
 private:
+    void ARDUINO_ISR_ATTR on();
+    void ARDUINO_ISR_ATTR off();
+    void ARDUINO_ISR_ATTR toggle();
     void ARDUINO_ISR_ATTR write(bool enabled);
 
     const std::uint8_t pin_;

@@ -17,7 +17,7 @@ FanController::FanController(GPIO_TypeDef* port,
 
 void FanController::begin()
 {
-    write(false);
+    off();
 }
 
 void FanController::onPeriod()
@@ -25,16 +25,14 @@ void FanController::onPeriod()
     elapsedSeconds_ = elapsedSeconds_ + 1U;
 
     if (running_ && elapsedSeconds_ >= runDurationSeconds_) {
-        running_ = false;
-        write(false);
+        off();
 
         if (pendingStops_ < std::numeric_limits<std::uint32_t>::max()) {
             pendingStops_ = pendingStops_ + 1U;
         }
     } else if (!running_ && elapsedSeconds_ >= cyclePeriodSeconds_) {
         elapsedSeconds_ = 0;
-        running_ = true;
-        write(true);
+        on();
 
         if (pendingStarts_ < std::numeric_limits<std::uint32_t>::max()) {
             pendingStarts_ = pendingStarts_ + 1U;
@@ -57,8 +55,24 @@ FanController::Events FanController::takeEvents()
     return events;
 }
 
+void FanController::on()
+{
+    write(true);
+}
+
+void FanController::off()
+{
+    write(false);
+}
+
+void FanController::toggle()
+{
+    write(!running_);
+}
+
 void FanController::write(bool enabled)
 {
+    running_ = enabled;
     const bool high = enabled == activeHigh_;
     HAL_GPIO_WritePin(port_, pin_, high ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
