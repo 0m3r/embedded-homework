@@ -7,8 +7,8 @@ void Application::setup()
     Serial.begin(Config::SerialBaud);
     fan_.begin();
 
-    if (!timer_.init(Config::TimerTickMs, onTimer, this) ||
-        !timer_.start()) {
+    if (!timer_.init(onTimer, this) ||
+        !timer_.startOnce(Config::CyclePeriodMs)) {
         Serial.println("Hardware timer initialization failed");
         while (true) {
         }
@@ -16,8 +16,8 @@ void Application::setup()
 
     Serial.printf("Fan scheduler: GPIO%u, period=%lus, run=%lus\n",
                   Config::FanPin,
-                  static_cast<unsigned long>(Config::CyclePeriodSeconds),
-                  static_cast<unsigned long>(Config::RunDurationSeconds));
+                   static_cast<unsigned long>(Config::CyclePeriodMs / 1'000),
+                   static_cast<unsigned long>(Config::RunDurationMs / 1'000));
 }
 
 void Application::loop()
@@ -35,5 +35,7 @@ void Application::loop()
 
 void ARDUINO_ISR_ATTR Application::onTimer(void* context)
 {
-    static_cast<Application*>(context)->fan_.update();
+    auto& application = *static_cast<Application*>(context);
+    const auto nextIntervalMs = application.fan_.onTimeout();
+    application.timer_.startOnce(nextIntervalMs);
 }

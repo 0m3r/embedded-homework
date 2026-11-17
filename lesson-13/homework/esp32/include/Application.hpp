@@ -16,6 +16,6 @@ private:
     FanController fan_{
         Config::FanPin,
         Config::FanActiveHigh,
-        Config::CyclePeriodSeconds,
-        Config::RunDurationSeconds};
+        Config::RunDurationMs,
+        Config::IdleDurationMs};
 };

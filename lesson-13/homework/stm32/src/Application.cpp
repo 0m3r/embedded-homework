@@ -8,8 +8,8 @@ void Application::init()
 {
     fan_.begin();
 
-    if (!timer_.init(Config::TimerTickMs, onTimer, this) ||
-        !timer_.start()) {
+    if (!timer_.init(onTimer, this) ||
+        !timer_.startOnce(Config::CyclePeriodMs)) {
         logger_.log("Hardware timer initialization failed\r\n");
         while (true) {}
     }
@@ -32,7 +32,9 @@ void Application::update()
 
 void Application::onTimer(void* context)
 {
-    static_cast<Application*>(context)->fan_.onPeriod();
+    auto& application = *static_cast<Application*>(context);
+    const auto nextIntervalMs = application.fan_.onTimeout();
+    application.timer_.startOnce(nextIntervalMs);
 }
 
 extern "C" void appInit()

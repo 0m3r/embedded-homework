@@ -2,11 +2,9 @@
 
 PeriodicTimer* PeriodicTimer::instance_ = nullptr;
 
-bool PeriodicTimer::init(std::uint32_t intervalMs,
-                         Handler handler,
-                         void* context)
+bool PeriodicTimer::init(Handler handler, void* context)
 {
-    if (intervalMs == 0 || handler == nullptr) {
+    if (handler == nullptr) {
         return false;
     }
 
@@ -21,25 +19,27 @@ bool PeriodicTimer::init(std::uint32_t intervalMs,
 
     timerStop(timer_);
     timerAttachInterrupt(timer_, handleInterrupt);
+    timerWrite(timer_, 0);
+    return true;
+}
+
+bool ARDUINO_ISR_ATTR PeriodicTimer::startOnce(std::uint32_t intervalMs)
+{
+    if (timer_ == nullptr || intervalMs == 0) {
+        return false;
+    }
 
     const std::uint64_t alarmTicks =
         static_cast<std::uint64_t>(intervalMs) *
         CounterFrequencyHz / 1'000;
 
-    timerAlarm(timer_, alarmTicks, true, 0);
-    timerStop(timer_);
+    timerAlarm(timer_, alarmTicks, false, 0);
     timerWrite(timer_, 0);
-    return true;
-}
 
-bool PeriodicTimer::start()
-{
-    if (timer_ == nullptr) {
-        return false;
+    if (!started_) {
+        timerStart(timer_);
+        started_ = true;
     }
-
-    timerWrite(timer_, 0);
-    timerStart(timer_);
     return true;
 }
 
@@ -51,6 +51,7 @@ void PeriodicTimer::stop()
 
     timerStop(timer_);
     timerWrite(timer_, 0);
+    started_ = false;
 }
 
 void ARDUINO_ISR_ATTR PeriodicTimer::handleInterrupt()

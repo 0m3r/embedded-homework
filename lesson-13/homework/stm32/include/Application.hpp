@@ -19,8 +19,8 @@ private:
         Config::FanPort,
         Config::FanPin,
         Config::FanActiveHigh,
-        Config::CyclePeriodSeconds,
-        Config::RunDurationSeconds};
+        Config::RunDurationMs,
+        Config::IdleDurationMs};
 };
 
 extern "C" void appInit();

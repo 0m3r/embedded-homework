@@ -14,11 +14,11 @@ public:
     FanController(GPIO_TypeDef* port,
                   std::uint16_t pin,
                   bool activeHigh,
-                  std::uint32_t cyclePeriodSeconds,
-                  std::uint32_t runDurationSeconds);
+                  std::uint32_t runDurationMs,
+                  std::uint32_t idleDurationMs);
 
     void begin();
-    void onPeriod();
+    std::uint32_t onTimeout();
     Events takeEvents();
 
 private:
@@ -30,10 +30,9 @@ private:
     GPIO_TypeDef* const port_;
     const std::uint16_t pin_;
     const bool activeHigh_;
-    const std::uint32_t cyclePeriodSeconds_;
-    const std::uint32_t runDurationSeconds_;
+    const std::uint32_t runDurationMs_;
+    const std::uint32_t idleDurationMs_;
 
-    volatile std::uint32_t elapsedSeconds_ = 0;
     volatile std::uint32_t pendingStarts_ = 0;
     volatile std::uint32_t pendingStops_ = 0;
     volatile bool running_ = false;

@@ -8,8 +8,8 @@ class PeriodicTimer {
 public:
     using Handler = void (*)(void* context);
 
-    bool init(std::uint32_t intervalMs, Handler handler, void* context);
-    bool start();
+    bool init(Handler handler, void* context);
+    bool ARDUINO_ISR_ATTR startOnce(std::uint32_t intervalMs);
     void stop();
 
 private:
@@ -21,4 +21,5 @@ private:
     hw_timer_t* timer_ = nullptr;
     Handler handler_ = nullptr;
     void* context_ = nullptr;
+    bool started_ = false;
 };

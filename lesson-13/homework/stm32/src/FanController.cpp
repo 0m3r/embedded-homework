@@ -5,39 +5,35 @@
 FanController::FanController(GPIO_TypeDef* port,
                              std::uint16_t pin,
                              bool activeHigh,
-                             std::uint32_t cyclePeriodSeconds,
-                             std::uint32_t runDurationSeconds)
+                             std::uint32_t runDurationMs,
+                             std::uint32_t idleDurationMs)
     : port_(port),
       pin_(pin),
       activeHigh_(activeHigh),
-      cyclePeriodSeconds_(cyclePeriodSeconds),
-      runDurationSeconds_(runDurationSeconds)
+      runDurationMs_(runDurationMs),
+      idleDurationMs_(idleDurationMs)
 {
 }
 
 void FanController::begin()
 {
-    off();
+    write(false);
 }
 
-void FanController::onPeriod()
+std::uint32_t FanController::onTimeout()
 {
-    elapsedSeconds_ = elapsedSeconds_ + 1U;
+    const bool wasRunning = running_;
+    toggle();
 
-    if (running_ && elapsedSeconds_ >= runDurationSeconds_) {
-        off();
-
+    if (wasRunning) {
         if (pendingStops_ < std::numeric_limits<std::uint32_t>::max()) {
             pendingStops_ = pendingStops_ + 1U;
         }
-    } else if (!running_ && elapsedSeconds_ >= cyclePeriodSeconds_) {
-        elapsedSeconds_ = 0;
-        on();
-
-        if (pendingStarts_ < std::numeric_limits<std::uint32_t>::max()) {
-            pendingStarts_ = pendingStarts_ + 1U;
-        }
+    } else if (pendingStarts_ < std::numeric_limits<std::uint32_t>::max()) {
+        pendingStarts_ = pendingStarts_ + 1U;
     }
+
+    return running_ ? runDurationMs_ : idleDurationMs_;
 }
 
 FanController::Events FanController::takeEvents()
@@ -57,17 +53,21 @@ FanController::Events FanController::takeEvents()
 
 void FanController::on()
 {
-    write(true);
+    if (!running_) {
+        write(true);
+    }
 }
 
 void FanController::off()
 {
-    write(false);
+    if (running_) {
+        write(false);
+    }
 }
 
 void FanController::toggle()
 {
-    write(!running_);
+    running_ ? off() : on();
 }
 
 void FanController::write(bool enabled)
