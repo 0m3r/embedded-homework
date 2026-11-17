@@ -8,6 +8,8 @@ STM32F411 керує вентилятором через транзистор н
 - superloop використовується лише для USB CDC логування;
 - `delay()` відсутній.
 
+USB CDC файли відокремлені в `include/Usb` та `src/Usb`.
+
 Production:
 
 ```bash
