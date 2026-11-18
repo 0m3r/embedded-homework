@@ -13,7 +13,7 @@ private:
     Led led2_{GPIOB, GPIO_PIN_0, false};
     Led led3_{GPIOB, GPIO_PIN_1, false};
 
-    IntervalTimer timer1_{250};
+    IntervalTimer timer1_{200};
     IntervalTimer timer2_{500};
     IntervalTimer timer3_{1000};
 };
