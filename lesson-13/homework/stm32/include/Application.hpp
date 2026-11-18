@@ -3,7 +3,6 @@
 #include "Config.hpp"
 #include "DebugLogger.hpp"
 #include "FanController.hpp"
-#include "PeriodicTimer.hpp"
 
 class Application {
 public:
@@ -11,10 +10,10 @@ public:
     void update();
 
 private:
-    static void onTimer(void* context);
+    [[noreturn]] void fail(const char* message);
 
+    IWDG_HandleTypeDef watchdog_{};
     DebugLogger logger_;
-    PeriodicTimer timer_;
     FanController fan_{
         Config::FanPort,
         Config::FanPin,

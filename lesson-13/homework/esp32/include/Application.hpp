@@ -2,7 +2,6 @@
 
 #include "Config.hpp"
 #include "FanController.hpp"
-#include "PeriodicTimer.hpp"
 
 class Application {
 public:
@@ -10,9 +9,8 @@ public:
     void loop();
 
 private:
-    static void ARDUINO_ISR_ATTR onTimer(void* context);
+    [[noreturn]] void fail(const char* message);
 
-    PeriodicTimer timer_;
     FanController fan_{
         Config::FanPin,
         Config::FanActiveHigh,

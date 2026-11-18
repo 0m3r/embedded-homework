@@ -6,12 +6,16 @@ Application application;
 
 void Application::init()
 {
-    fan_.begin();
+    watchdog_.Instance = IWDG;
+    watchdog_.Init.Prescaler = IWDG_PRESCALER_128;
+    watchdog_.Init.Reload = 1'000;
 
-    if (!timer_.init(onTimer, this) ||
-        !timer_.startOnce(Config::CyclePeriodMs)) {
-        logger_.log("Hardware timer initialization failed\r\n");
-        while (true) {}
+    if (HAL_IWDG_Init(&watchdog_) != HAL_OK) {
+        NVIC_SystemReset();
+    }
+
+    if (!fan_.begin()) {
+        fail("Fan controller initialization failed\r\n");
     }
 
     logger_.log("Fan scheduler ready on PC15\r\n");
@@ -19,22 +23,27 @@ void Application::init()
 
 void Application::update()
 {
-    const auto events = fan_.takeEvents();
+    HAL_IWDG_Refresh(&watchdog_);
 
-    for (std::uint32_t i = 0; i < events.starts; ++i) {
+    switch (fan_.takeEvent()) {
+    case FanController::Event::Started:
         logger_.log("Fan ON\r\n");
-    }
+        break;
 
-    for (std::uint32_t i = 0; i < events.stops; ++i) {
+    case FanController::Event::Stopped:
         logger_.log("Fan OFF\r\n");
+        break;
+
+    case FanController::Event::None:
+        break;
     }
 }
 
-void Application::onTimer(void* context)
+void Application::fail(const char* message)
 {
-    auto& application = *static_cast<Application*>(context);
-    const auto nextIntervalMs = application.fan_.onTimeout();
-    application.timer_.startOnce(nextIntervalMs);
+    logger_.log(message);
+    while (true) {
+    }
 }
 
 extern "C" void appInit()

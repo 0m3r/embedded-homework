@@ -5,37 +5,39 @@
 void Application::setup()
 {
     Serial.begin(Config::SerialBaud);
-    fan_.begin();
+    enableLoopWDT();
 
-    if (!timer_.init(onTimer, this) ||
-        !timer_.startOnce(Config::CyclePeriodMs)) {
-        Serial.println("Hardware timer initialization failed");
-        while (true) {
-        }
+    if (!fan_.begin()) {
+        fail("Fan controller initialization failed");
     }
 
     Serial.printf("Fan scheduler: GPIO%u, period=%lus, run=%lus\n",
                   Config::FanPin,
-                   static_cast<unsigned long>(Config::CyclePeriodMs / 1'000),
-                   static_cast<unsigned long>(Config::RunDurationMs / 1'000));
+                  static_cast<unsigned long>(Config::CyclePeriodMs / 1'000),
+                  static_cast<unsigned long>(Config::RunDurationMs / 1'000));
 }
 
 void Application::loop()
 {
-    const auto events = fan_.takeEvents();
+    feedLoopWDT();
 
-    for (std::uint32_t i = 0; i < events.starts; ++i) {
+    switch (fan_.takeEvent()) {
+    case FanController::Event::Started:
         Serial.println("Fan ON");
-    }
+        break;
 
-    for (std::uint32_t i = 0; i < events.stops; ++i) {
+    case FanController::Event::Stopped:
         Serial.println("Fan OFF");
+        break;
+
+    case FanController::Event::None:
+        break;
     }
 }
 
-void ARDUINO_ISR_ATTR Application::onTimer(void* context)
+void Application::fail(const char* message)
 {
-    auto& application = *static_cast<Application*>(context);
-    const auto nextIntervalMs = application.fan_.onTimeout();
-    application.timer_.startOnce(nextIntervalMs);
+    Serial.println(message);
+    while (true) {
+    }
 }

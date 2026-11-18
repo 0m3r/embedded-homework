@@ -1,12 +1,12 @@
-#include "PeriodicTimer.hpp"
+#include "OneShotTimer.hpp"
 
 #include <limits>
 
-PeriodicTimer* PeriodicTimer::instance_ = nullptr;
+OneShotTimer* OneShotTimer::instance_ = nullptr;
 
-bool PeriodicTimer::init(Handler handler, void* context)
+bool OneShotTimer::init(Callback callback, void* context)
 {
-    if (handler == nullptr) {
+    if (callback == nullptr) {
         return false;
     }
 
@@ -15,7 +15,7 @@ bool PeriodicTimer::init(Handler handler, void* context)
     const std::uint32_t timerClockHz = HAL_RCC_GetPCLK1Freq() * 2U;
 
     timer_.Instance = TIM2;
-    timer_.Init.Prescaler = timerClockHz / CounterFrequencyHz - 1U;
+    timer_.Init.Prescaler = timerClockHz / FrequencyHz - 1U;
     timer_.Init.CounterMode = TIM_COUNTERMODE_UP;
     timer_.Init.Period = std::numeric_limits<std::uint32_t>::max();
     timer_.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -25,7 +25,7 @@ bool PeriodicTimer::init(Handler handler, void* context)
         return false;
     }
 
-    handler_ = handler;
+    callback_ = callback;
     context_ = context;
     instance_ = this;
 
@@ -34,11 +34,10 @@ bool PeriodicTimer::init(Handler handler, void* context)
     return true;
 }
 
-bool PeriodicTimer::startOnce(std::uint32_t intervalMs)
+bool OneShotTimer::start(std::uint32_t intervalMs)
 {
     const std::uint64_t ticks =
-        static_cast<std::uint64_t>(intervalMs) *
-        CounterFrequencyHz / 1'000;
+        static_cast<std::uint64_t>(intervalMs) * FrequencyHz / 1'000;
 
     if (ticks == 0 ||
         ticks > std::numeric_limits<std::uint32_t>::max()) {
@@ -46,7 +45,6 @@ bool PeriodicTimer::startOnce(std::uint32_t intervalMs)
     }
 
     __HAL_TIM_DISABLE(&timer_);
-    __HAL_TIM_DISABLE_IT(&timer_, TIM_IT_UPDATE);
     __HAL_TIM_SET_AUTORELOAD(
         &timer_, static_cast<std::uint32_t>(ticks - 1U));
     __HAL_TIM_SET_COUNTER(&timer_, 0);
@@ -56,14 +54,7 @@ bool PeriodicTimer::startOnce(std::uint32_t intervalMs)
     return true;
 }
 
-void PeriodicTimer::stop()
-{
-    __HAL_TIM_DISABLE_IT(&timer_, TIM_IT_UPDATE);
-    __HAL_TIM_DISABLE(&timer_);
-    __HAL_TIM_SET_COUNTER(&timer_, 0);
-}
-
-void PeriodicTimer::handleInterrupt()
+void OneShotTimer::interruptHandler()
 {
     if (instance_ == nullptr) {
         return;
@@ -78,13 +69,10 @@ void PeriodicTimer::handleInterrupt()
     __HAL_TIM_CLEAR_IT(&timer.timer_, TIM_IT_UPDATE);
     __HAL_TIM_DISABLE_IT(&timer.timer_, TIM_IT_UPDATE);
     __HAL_TIM_DISABLE(&timer.timer_);
-
-    if (timer.handler_ != nullptr) {
-        timer.handler_(timer.context_);
-    }
+    timer.callback_(timer.context_);
 }
 
 extern "C" void TIM2_IRQHandler()
 {
-    PeriodicTimer::handleInterrupt();
+    OneShotTimer::interruptHandler();
 }

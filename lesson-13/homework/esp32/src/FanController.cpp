@@ -1,7 +1,5 @@
 #include "FanController.hpp"
 
-#include <limits>
-
 FanController::FanController(std::uint8_t pin,
                              bool activeHigh,
                              std::uint32_t runDurationMs,
@@ -13,40 +11,38 @@ FanController::FanController(std::uint8_t pin,
 {
 }
 
-void FanController::begin()
+bool FanController::begin()
 {
     pinMode(pin_, OUTPUT);
     write(false);
+
+    return timer_.init(timerCallback, this) &&
+           timer_.start(idleDurationMs_);
 }
 
-std::uint32_t ARDUINO_ISR_ATTR FanController::onTimeout()
-{
-    portENTER_CRITICAL_ISR(&mux_);
-    const bool wasRunning = running_;
-    toggle();
-
-    if (wasRunning) {
-        if (pendingStops_ < std::numeric_limits<std::uint32_t>::max()) {
-            pendingStops_ = pendingStops_ + 1U;
-        }
-    } else if (pendingStarts_ < std::numeric_limits<std::uint32_t>::max()) {
-        pendingStarts_ = pendingStarts_ + 1U;
-    }
-
-    const auto nextIntervalMs =
-        running_ ? runDurationMs_ : idleDurationMs_;
-    portEXIT_CRITICAL_ISR(&mux_);
-    return nextIntervalMs;
-}
-
-FanController::Events FanController::takeEvents()
+FanController::Event FanController::takeEvent()
 {
     portENTER_CRITICAL(&mux_);
-    const Events events{pendingStarts_, pendingStops_};
-    pendingStarts_ = 0;
-    pendingStops_ = 0;
+    const auto event = pendingEvent_;
+    pendingEvent_ = Event::None;
     portEXIT_CRITICAL(&mux_);
-    return events;
+    return event;
+}
+
+void ARDUINO_ISR_ATTR FanController::timerCallback(void* context)
+{
+    static_cast<FanController*>(context)->onTimeout();
+}
+
+void ARDUINO_ISR_ATTR FanController::onTimeout()
+{
+    toggle();
+
+    portENTER_CRITICAL_ISR(&mux_);
+    pendingEvent_ = running_ ? Event::Started : Event::Stopped;
+    portEXIT_CRITICAL_ISR(&mux_);
+
+    timer_.start(running_ ? runDurationMs_ : idleDurationMs_);
 }
 
 void ARDUINO_ISR_ATTR FanController::on()

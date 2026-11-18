@@ -1,7 +1,5 @@
 #include "FanController.hpp"
 
-#include <limits>
-
 FanController::FanController(GPIO_TypeDef* port,
                              std::uint16_t pin,
                              bool activeHigh,
@@ -15,40 +13,46 @@ FanController::FanController(GPIO_TypeDef* port,
 {
 }
 
-void FanController::begin()
+bool FanController::begin()
 {
+    __HAL_RCC_GPIOC_CLK_ENABLE();
     write(false);
+
+    GPIO_InitTypeDef gpio = {};
+    gpio.Pin = pin_;
+    gpio.Mode = GPIO_MODE_OUTPUT_PP;
+    gpio.Pull = GPIO_NOPULL;
+    gpio.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(port_, &gpio);
+
+    return timer_.init(timerCallback, this) &&
+           timer_.start(idleDurationMs_);
 }
 
-std::uint32_t FanController::onTimeout()
-{
-    const bool wasRunning = running_;
-    toggle();
-
-    if (wasRunning) {
-        if (pendingStops_ < std::numeric_limits<std::uint32_t>::max()) {
-            pendingStops_ = pendingStops_ + 1U;
-        }
-    } else if (pendingStarts_ < std::numeric_limits<std::uint32_t>::max()) {
-        pendingStarts_ = pendingStarts_ + 1U;
-    }
-
-    return running_ ? runDurationMs_ : idleDurationMs_;
-}
-
-FanController::Events FanController::takeEvents()
+FanController::Event FanController::takeEvent()
 {
     const auto interruptState = __get_PRIMASK();
     __disable_irq();
 
-    const Events events{pendingStarts_, pendingStops_};
-    pendingStarts_ = 0;
-    pendingStops_ = 0;
+    const auto event = pendingEvent_;
+    pendingEvent_ = Event::None;
 
     if (interruptState == 0U) {
         __enable_irq();
     }
-    return events;
+    return event;
+}
+
+void FanController::timerCallback(void* context)
+{
+    static_cast<FanController*>(context)->onTimeout();
+}
+
+void FanController::onTimeout()
+{
+    toggle();
+    pendingEvent_ = running_ ? Event::Started : Event::Stopped;
+    timer_.start(running_ ? runDurationMs_ : idleDurationMs_);
 }
 
 void FanController::on()
