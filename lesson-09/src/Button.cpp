@@ -37,8 +37,21 @@ bool Button::update(uint32_t now)
 
 bool Button::debounce(uint32_t now)
 {
-    if (raw_ == stable_ ||
-        now - lastChangeAt_ < debounceMs_)
+    if (now - lastChangeAt_ < debounceMs_)
+    {
+        return false;
+    }
+
+    const bool current = digitalRead(pin_) == LOW;
+
+    if (current != raw_)
+    {
+        raw_ = current;
+        lastChangeAt_ = now;
+        return false;
+    }
+
+    if (raw_ == stable_)
     {
         return false;
     }
