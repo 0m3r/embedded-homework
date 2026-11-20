@@ -1,0 +1,12 @@
+idf_component_register(
+    SRCS
+        "EspIdf/Application.cpp"
+        "EspIdf/Button.cpp"
+        "EspIdf/Led.cpp"
+        "EspIdf/main.cpp"
+    INCLUDE_DIRS
+        "../include"
+    REQUIRES
+        driver
+        esp_timer
+)

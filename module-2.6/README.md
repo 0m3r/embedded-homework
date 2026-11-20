@@ -6,3 +6,7 @@ Interrupt + one-shot hardware timer debounce без `delay()`.
 
 - [STM32F411](classwork/stm32)
 - [ESP32-S3](classwork/esp32)
+
+## Homework
+
+- [ESP32-S3 на ESP-IDF](homework/esp32-idf)
