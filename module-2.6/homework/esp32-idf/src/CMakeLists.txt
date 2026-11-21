@@ -2,6 +2,7 @@ idf_component_register(
     SRCS
         "EspIdf/Application.cpp"
         "EspIdf/Button.cpp"
+        "EspIdf/Debouncer/TimerFsmDebouncer.cpp"
         "EspIdf/Led.cpp"
         "EspIdf/main.cpp"
     INCLUDE_DIRS
