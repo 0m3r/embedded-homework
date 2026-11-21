@@ -10,36 +10,36 @@ StateBasedDebouncer::StateBasedDebouncer(const DebugLogger& logger,
 void StateBasedDebouncer::debounce(const DebounceInput& input)
 {
     switch (state_) {
-    case State::Released:
+    case State::Idle:
         if (input.interruptCount > 0) {
-            state_ = State::DebouncingPress;
+            state_ = State::Pressed;
             transitionStartedAtMs_ = input.nowMs;
         }
         break;
 
-    case State::DebouncingPress:
+    case State::Pressed:
         if (input.interruptCount > 0) {
             transitionStartedAtMs_ = input.nowMs;
         } else if (input.nowMs - transitionStartedAtMs_ >= debounceMs_) {
-            state_ = input.pressed ? State::Pressed : State::Released;
+            state_ = input.pressed ? State::Held : State::Idle;
             if (input.pressed) {
                 logger_.press(source_, "State FSM", ++count_);
             }
         }
         break;
 
-    case State::Pressed:
+    case State::Held:
         if (!input.pressed) {
-            state_ = State::DebouncingRelease;
+            state_ = State::Release;
             transitionStartedAtMs_ = input.nowMs;
         }
         break;
 
-    case State::DebouncingRelease:
+    case State::Release:
         if (input.pressed) {
-            state_ = State::Pressed;
+            state_ = State::Held;
         } else if (input.nowMs - transitionStartedAtMs_ >= debounceMs_) {
-            state_ = State::Released;
+            state_ = State::Idle;
         }
         break;
     }

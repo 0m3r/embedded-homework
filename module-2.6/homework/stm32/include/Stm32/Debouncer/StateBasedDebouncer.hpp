@@ -15,10 +15,10 @@ public:
 
 private:
     enum class State {
-        Released,
-        DebouncingPress,
+        Idle,
         Pressed,
-        DebouncingRelease,
+        Held,
+        Release,
     };
 
     const DebugLogger& logger_;
@@ -26,5 +26,5 @@ private:
     const std::uint32_t debounceMs_;
     std::uint32_t transitionStartedAtMs_ = 0;
     std::uint32_t count_ = 0;
-    State state_ = State::Released;
+    State state_ = State::Idle;
 };

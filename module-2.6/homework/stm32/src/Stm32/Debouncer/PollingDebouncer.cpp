@@ -19,34 +19,34 @@ void PollingDebouncer::debounce(const DebounceInput& input)
     lastPollAtMs_ = input.nowMs;
 
     switch (state_) {
-    case State::Released:
+    case State::Idle:
         if (input.pressed) {
-            state_ = State::DebouncingPress;
-            transitionStartedAtMs_ = input.nowMs;
-        }
-        break;
-
-    case State::DebouncingPress:
-        if (!input.pressed) {
-            state_ = State::Released;
-        } else if (input.nowMs - transitionStartedAtMs_ >= debounceMs_) {
             state_ = State::Pressed;
-            logger_.press(source_, "Polling FSM", ++count_);
+            transitionStartedAtMs_ = input.nowMs;
         }
         break;
 
     case State::Pressed:
         if (!input.pressed) {
-            state_ = State::DebouncingRelease;
+            state_ = State::Idle;
+        } else if (input.nowMs - transitionStartedAtMs_ >= debounceMs_) {
+            state_ = State::Held;
+            logger_.press(source_, "Polling FSM", ++count_);
+        }
+        break;
+
+    case State::Held:
+        if (!input.pressed) {
+            state_ = State::Release;
             transitionStartedAtMs_ = input.nowMs;
         }
         break;
 
-    case State::DebouncingRelease:
+    case State::Release:
         if (input.pressed) {
-            state_ = State::Pressed;
+            state_ = State::Held;
         } else if (input.nowMs - transitionStartedAtMs_ >= debounceMs_) {
-            state_ = State::Released;
+            state_ = State::Idle;
         }
         break;
     }

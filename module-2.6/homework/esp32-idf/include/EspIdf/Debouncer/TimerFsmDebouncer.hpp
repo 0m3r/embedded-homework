@@ -19,10 +19,10 @@ public:
 
 private:
     enum class State {
-        Released,
-        DebouncingPress,
+        Idle,
         Pressed,
-        DebouncingRelease
+        Held,
+        Release
     };
 
     static void timerCallback(void* context);
@@ -34,7 +34,7 @@ private:
     esp_timer_handle_t timer_ = nullptr;
     PressCallback callback_ = nullptr;
     void* callbackContext_ = nullptr;
-    State state_ = State::Released;
+    State state_ = State::Idle;
     std::uint32_t pressCount_ = 0;
     mutable portMUX_TYPE mux_ = portMUX_INITIALIZER_UNLOCKED;
 };

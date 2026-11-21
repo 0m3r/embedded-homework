@@ -32,25 +32,25 @@ void TimerFsmDebouncer::onEdge(bool pressed)
     portENTER_CRITICAL(&mux_);
 
     switch (state_) {
-    case State::Released:
+    case State::Idle:
         if (pressed) {
-            state_ = State::DebouncingPress;
+            state_ = State::Pressed;
             restart = true;
         }
-        break;
-
-    case State::DebouncingPress:
-        restart = true;
         break;
 
     case State::Pressed:
+        restart = true;
+        break;
+
+    case State::Held:
         if (!pressed) {
-            state_ = State::DebouncingRelease;
+            state_ = State::Release;
             restart = true;
         }
         break;
 
-    case State::DebouncingRelease:
+    case State::Release:
         restart = true;
         break;
     }
@@ -81,14 +81,14 @@ void TimerFsmDebouncer::onTimeout()
     bool emitPress = false;
     portENTER_CRITICAL(&mux_);
 
-    if (state_ == State::DebouncingPress) {
-        state_ = pressed ? State::Pressed : State::Released;
+    if (state_ == State::Pressed) {
+        state_ = pressed ? State::Held : State::Idle;
         if (pressed) {
             ++pressCount_;
             emitPress = true;
         }
-    } else if (state_ == State::DebouncingRelease) {
-        state_ = pressed ? State::Pressed : State::Released;
+    } else if (state_ == State::Release) {
+        state_ = pressed ? State::Held : State::Idle;
     }
 
     portEXIT_CRITICAL(&mux_);

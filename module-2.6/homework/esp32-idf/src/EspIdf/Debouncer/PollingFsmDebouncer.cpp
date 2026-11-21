@@ -11,35 +11,35 @@ bool PollingFsmDebouncer::update(
     std::uint64_t nowMs)
 {
     switch (state_) {
-    case State::Released:
+    case State::Idle:
         if (pressed) {
-            state_ = State::DebouncingPress;
-            stateSinceMs_ = nowMs;
-        }
-        break;
-
-    case State::DebouncingPress:
-        if (!pressed) {
-            state_ = State::Released;
-        } else if (nowMs - stateSinceMs_ >= debounceMs_) {
             state_ = State::Pressed;
-            ++pressCount_;
-            return true;
+            stateSinceMs_ = nowMs;
         }
         break;
 
     case State::Pressed:
         if (!pressed) {
-            state_ = State::DebouncingRelease;
+            state_ = State::Idle;
+        } else if (nowMs - stateSinceMs_ >= debounceMs_) {
+            state_ = State::Held;
+            ++pressCount_;
+            return true;
+        }
+        break;
+
+    case State::Held:
+        if (!pressed) {
+            state_ = State::Release;
             stateSinceMs_ = nowMs;
         }
         break;
 
-    case State::DebouncingRelease:
+    case State::Release:
         if (pressed) {
-            state_ = State::Pressed;
+            state_ = State::Held;
         } else if (nowMs - stateSinceMs_ >= debounceMs_) {
-            state_ = State::Released;
+            state_ = State::Idle;
         }
         break;
     }

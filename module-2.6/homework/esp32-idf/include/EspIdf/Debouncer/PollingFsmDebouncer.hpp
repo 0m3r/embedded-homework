@@ -11,14 +11,14 @@ public:
 
 private:
     enum class State {
-        Released,
-        DebouncingPress,
+        Idle,
         Pressed,
-        DebouncingRelease
+        Held,
+        Release
     };
 
     const std::uint32_t debounceMs_;
-    State state_ = State::Released;
+    State state_ = State::Idle;
     std::uint64_t stateSinceMs_ = 0;
     std::uint32_t pressCount_ = 0;
 };
