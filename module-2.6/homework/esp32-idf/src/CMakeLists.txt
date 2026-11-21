@@ -2,6 +2,10 @@ idf_component_register(
     SRCS
         "EspIdf/Application.cpp"
         "EspIdf/Button.cpp"
+        "EspIdf/ButtonExperiment.cpp"
+        "EspIdf/Debouncer/NoDebouncer.cpp"
+        "EspIdf/Debouncer/PollingFsmDebouncer.cpp"
+        "EspIdf/Debouncer/TimeBasedDebouncer.cpp"
         "EspIdf/Debouncer/TimerFsmDebouncer.cpp"
         "EspIdf/Led.cpp"
         "EspIdf/main.cpp"

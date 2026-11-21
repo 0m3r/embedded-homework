@@ -11,17 +11,12 @@ constexpr char Tag[] = "debounce";
 
 esp_err_t Application::init()
 {
-    esp_err_t result = led_.init();
+    esp_err_t result = noRc_.init();
     if (result != ESP_OK) {
         return result;
     }
 
-    result = button_.init();
-    if (result != ESP_OK) {
-        return result;
-    }
-
-    result = timerFsm_.init(buttonPressed, this);
+    result = hardwareRc_.init();
     if (result != ESP_OK) {
         return result;
     }
@@ -32,7 +27,9 @@ esp_err_t Application::init()
         return ESP_ERR_NO_MEM;
     }
 
-    ESP_LOGI(Tag, "Ready: GPIO21 button -> GPIO15 LED");
+    ESP_LOGI(
+        Tag,
+        "Ready: GPIO21->GPIO12, GPIO18 RC->GPIO16");
     return ESP_OK;
 }
 
@@ -41,52 +38,19 @@ void Application::task(void* context)
     static_cast<Application*>(context)->run();
 }
 
-void Application::buttonPressed(void* context)
-{
-    static_cast<Application*>(context)->onButtonPressed();
-}
-
 void Application::run()
 {
+    const TickType_t pollDelayTicks =
+        pdMS_TO_TICKS(Config::PollIntervalMs) > 0
+            ? pdMS_TO_TICKS(Config::PollIntervalMs)
+            : 1;
+
     while (true) {
-        bool pressed = false;
-        const bool hasEdge = button_.waitForEdge(
-            pressed, pdMS_TO_TICKS(Config::PollIntervalMs));
         const auto nowMs =
             static_cast<std::uint64_t>(esp_timer_get_time() / 1'000);
 
-        if (hasEdge) {
-            if (noDebouncer_.onEdge(pressed)) {
-                ESP_LOGI(
-                    Tag, "No debounce: %lu",
-                    static_cast<unsigned long>(
-                        noDebouncer_.pressCount()));
-            }
-
-            if (timeDebouncer_.onEdge(pressed, nowMs)) {
-                ESP_LOGI(
-                    Tag, "Time-based: %lu",
-                    static_cast<unsigned long>(
-                        timeDebouncer_.pressCount()));
-            }
-
-            timerFsm_.onEdge(pressed);
-        }
-
-        if (pollingFsm_.update(button_.isPressed(), nowMs)) {
-            ESP_LOGI(
-                Tag, "Polling FSM: %lu",
-                static_cast<unsigned long>(
-                    pollingFsm_.pressCount()));
-        }
+        noRc_.update(nowMs);
+        hardwareRc_.update(nowMs);
+        vTaskDelay(pollDelayTicks);
     }
-}
-
-void Application::onButtonPressed()
-{
-    led_.toggle();
-    ESP_LOGI(
-        Tag, "Timer FSM: %lu, LED %s",
-        static_cast<unsigned long>(timerFsm_.pressCount()),
-        led_.isOn() ? "ON" : "OFF");
 }

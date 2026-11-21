@@ -4,28 +4,10 @@
 
 class TimeBasedDebouncer {
 public:
-    explicit TimeBasedDebouncer(std::uint32_t debounceMs)
-        : debounceMs_(debounceMs)
-    {
-    }
+    explicit TimeBasedDebouncer(std::uint32_t debounceMs);
 
-    bool onEdge(bool pressed, std::uint64_t nowMs)
-    {
-        if (!pressed ||
-            (hasPress_ && nowMs - lastPressMs_ < debounceMs_)) {
-            return false;
-        }
-
-        hasPress_ = true;
-        lastPressMs_ = nowMs;
-        ++pressCount_;
-        return true;
-    }
-
-    std::uint32_t pressCount() const
-    {
-        return pressCount_;
-    }
+    bool onEdge(bool pressed, std::uint64_t nowMs);
+    std::uint32_t pressCount() const;
 
 private:
     const std::uint32_t debounceMs_;
