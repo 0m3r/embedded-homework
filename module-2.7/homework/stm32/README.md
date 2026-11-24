@@ -20,10 +20,10 @@ Green
 Кнопка active-high використовує внутрішній pull-down.
 
 ```text
-PC13 -> cathode of red LED; anode -> resistor -> 3.3 V (active-low)
-PC14 -> resistor -> yellow LED -> GND                 (active-high)
-PC15 -> resistor -> green LED  -> GND                 (active-high)
-PB0  -> button -> 3.3 V                               (active-high)
+PC13 -> resistor -> red LED    -> GND (active-high)
+PC14 -> resistor -> yellow LED -> GND (active-high)
+PC15 -> resistor -> green LED  -> GND (active-high)
+PB0  -> button -> 3.3 V              (active-high)
 ```
 
 ## FSM

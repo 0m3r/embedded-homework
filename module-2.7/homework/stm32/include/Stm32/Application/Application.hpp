@@ -22,7 +22,7 @@ private:
 
     DebugLogger logger_;
     Button modeButton_{GPIOB, GPIO_PIN_0, true};
-    Led red_{GPIOC, GPIO_PIN_13, true};
+    Led red_{GPIOC, GPIO_PIN_13, false};
     Led yellow_{GPIOC, GPIO_PIN_14, false};
     Led green_{GPIOC, GPIO_PIN_15, false};
     OneShotTimer trafficTimer_{Board::trafficTimer()};

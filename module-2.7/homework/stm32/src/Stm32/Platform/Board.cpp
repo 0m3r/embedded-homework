@@ -55,7 +55,6 @@ void gpioInit()
         GPIOC,
         GPIO_PIN_13 | GPIO_PIN_14 | GPIO_PIN_15,
         GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
 
     gpio.Pin = GPIO_PIN_13 | GPIO_PIN_14 | GPIO_PIN_15;
     gpio.Mode = GPIO_MODE_OUTPUT_PP;
