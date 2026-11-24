@@ -1,0 +1,15 @@
+idf_component_register(
+    SRCS
+        "EspIdf/Application.cpp"
+        "EspIdf/Button.cpp"
+        "EspIdf/Debouncer/TimerFsmDebouncer.cpp"
+        "EspIdf/Led.cpp"
+        "EspIdf/OneShotTimer.cpp"
+        "EspIdf/TrafficLight.cpp"
+        "EspIdf/main.cpp"
+    INCLUDE_DIRS
+        "../include"
+    REQUIRES
+        driver
+        esp_timer
+)
