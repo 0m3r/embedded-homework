@@ -34,6 +34,10 @@ void Application::update()
         logger_.log("Fan OFF\r\n");
         break;
 
+    case FanController::Event::TimerError:
+        fail("Fan timer restart failed\r\n");
+        break;
+
     case FanController::Event::None:
         break;
     }

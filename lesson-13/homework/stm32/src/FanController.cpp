@@ -51,8 +51,14 @@ void FanController::timerCallback(void* context)
 void FanController::onTimeout()
 {
     toggle();
-    pendingEvent_ = running_ ? Event::Started : Event::Stopped;
-    timer_.start(running_ ? runDurationMs_ : idleDurationMs_);
+    const auto event = running_ ? Event::Started : Event::Stopped;
+    const bool timerStarted =
+        timer_.start(running_ ? runDurationMs_ : idleDurationMs_);
+    pendingEvent_ = timerStarted ? event : Event::TimerError;
+
+    if (!timerStarted) {
+        off();
+    }
 }
 
 void FanController::on()

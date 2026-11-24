@@ -12,6 +12,7 @@ public:
         None,
         Started,
         Stopped,
+        TimerError,
     };
 
     FanController(std::uint8_t pin,

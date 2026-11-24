@@ -30,6 +30,10 @@ void Application::loop()
         Serial.println("Fan OFF");
         break;
 
+    case FanController::Event::TimerError:
+        fail("Fan timer restart failed");
+        break;
+
     case FanController::Event::None:
         break;
     }

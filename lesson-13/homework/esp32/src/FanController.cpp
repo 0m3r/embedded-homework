@@ -37,12 +37,17 @@ void ARDUINO_ISR_ATTR FanController::timerCallback(void* context)
 void ARDUINO_ISR_ATTR FanController::onTimeout()
 {
     toggle();
+    const auto event = running_ ? Event::Started : Event::Stopped;
+    const bool timerStarted =
+        timer_.start(running_ ? runDurationMs_ : idleDurationMs_);
 
     portENTER_CRITICAL_ISR(&mux_);
-    pendingEvent_ = running_ ? Event::Started : Event::Stopped;
+    pendingEvent_ = timerStarted ? event : Event::TimerError;
     portEXIT_CRITICAL_ISR(&mux_);
 
-    timer_.start(running_ ? runDurationMs_ : idleDurationMs_);
+    if (!timerStarted) {
+        off();
+    }
 }
 
 void ARDUINO_ISR_ATTR FanController::on()

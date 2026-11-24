@@ -11,6 +11,7 @@ public:
         None,
         Started,
         Stopped,
+        TimerError,
     };
 
     FanController(GPIO_TypeDef* port,
