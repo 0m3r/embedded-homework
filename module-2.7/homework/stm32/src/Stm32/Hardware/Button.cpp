@@ -1,13 +1,46 @@
 #include "Hardware/Button.hpp"
 
-Button::Button(GPIO_TypeDef* port, std::uint16_t pin, bool activeHigh)
-    : port_(port), pin_(pin), activeHigh_(activeHigh)
+Button::Button(
+    GPIO_TypeDef* port,
+    std::uint16_t pin,
+    bool activeHigh,
+    TIM_HandleTypeDef& timer,
+    std::uint32_t debounceMs)
+    : port_(port),
+      pin_(pin),
+      activeHigh_(activeHigh),
+      debounceMs_(debounceMs),
+      timer_(timer)
 {
 }
 
-void Button::init()
+void Button::init(PressCallback callback, void* context)
 {
-    pendingInterrupts_ = 0;
+    callback_ = callback;
+    callbackContext_ = context;
+    state_ = State::Idle;
+    edgePending_ = false;
+}
+
+void Button::update()
+{
+    if (takeEdge()) {
+        onEdge(isPressed());
+    }
+
+    if (!timer_.takeElapsed()) {
+        return;
+    }
+
+    const bool pressed = isPressed();
+    if (state_ == State::Pressed) {
+        state_ = pressed ? State::Held : State::Idle;
+        if (pressed && callback_ != nullptr) {
+            callback_(callbackContext_);
+        }
+    } else if (state_ == State::Release) {
+        state_ = pressed ? State::Held : State::Idle;
+    }
 }
 
 void Button::onInterrupt(std::uint16_t pin)
@@ -16,7 +49,12 @@ void Button::onInterrupt(std::uint16_t pin)
         return;
     }
 
-    ++pendingInterrupts_;
+    edgePending_ = true;
+}
+
+void Button::onTimerInterrupt(TIM_HandleTypeDef* timer)
+{
+    timer_.onInterrupt(timer);
 }
 
 bool Button::isPressed() const
@@ -25,17 +63,44 @@ bool Button::isPressed() const
     return activeHigh_ ? high : !high;
 }
 
-std::uint32_t Button::takeInterrupts()
+bool Button::takeEdge()
 {
     const auto interruptState = __get_PRIMASK();
     __disable_irq();
 
-    const auto interrupts = pendingInterrupts_;
-    pendingInterrupts_ = 0;
+    const bool edgePending = edgePending_;
+    edgePending_ = false;
 
     if (interruptState == 0U) {
         __enable_irq();
     }
 
-    return interrupts;
+    return edgePending;
+}
+
+void Button::onEdge(bool pressed)
+{
+    switch (state_) {
+    case State::Idle:
+        if (pressed) {
+            state_ = State::Pressed;
+            timer_.start(debounceMs_);
+        }
+        break;
+
+    case State::Pressed:
+        timer_.start(debounceMs_);
+        break;
+
+    case State::Held:
+        if (!pressed) {
+            state_ = State::Release;
+            timer_.start(debounceMs_);
+        }
+        break;
+
+    case State::Release:
+        timer_.start(debounceMs_);
+        break;
+    }
 }

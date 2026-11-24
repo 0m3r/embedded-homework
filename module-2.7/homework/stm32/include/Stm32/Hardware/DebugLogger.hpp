@@ -5,9 +5,6 @@
 class DebugLogger {
 public:
     void log(const char* message) const;
-    void press(const char* source,
-               const char* method,
-               std::uint32_t count) const;
     void update() const;
 
 private:

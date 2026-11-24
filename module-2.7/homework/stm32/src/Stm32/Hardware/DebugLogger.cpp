@@ -1,7 +1,6 @@
 #include "Hardware/DebugLogger.hpp"
 
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
 
 #include "usb_device.h"
@@ -20,20 +19,6 @@ void DebugLogger::log(const char* message) const
     queue_[head_][MessageSize - 1] = '\0';
     head_ = (head_ + 1) % QueueCapacity;
     ++count_;
-}
-
-void DebugLogger::press(const char* source,
-                        const char* method,
-                        std::uint32_t count) const
-{
-    char message[96];
-    std::snprintf(message,
-                  sizeof(message),
-                  "[%s] %s: %lu\r\n",
-                  source,
-                  method,
-                  static_cast<unsigned long>(count));
-    log(message);
 }
 
 void DebugLogger::update() const

@@ -10,32 +10,29 @@ constexpr std::uint32_t RedYellowMs = 1'000;
 constexpr std::uint32_t SpecialFlashHalfPeriodMs = 500;
 }
 
-TrafficLight::TrafficLight(
-    Led& red,
-    Led& yellow,
-    Led& green,
-    OneShotTimer& timer)
-    : red_(red),
-      yellow_(yellow),
-      green_(green),
-      timer_(timer)
-{
-}
-
 void TrafficLight::init()
 {
+    modeButton_.init(modeButtonPressed, this);
     enter(State::Green);
 }
 
 void TrafficLight::update()
 {
+    modeButton_.update();
+
     if (timer_.takeElapsed()) {
         next();
     }
 }
 
+void TrafficLight::onButtonInterrupt(std::uint16_t pin)
+{
+    modeButton_.onInterrupt(pin);
+}
+
 void TrafficLight::onTimerInterrupt(TIM_HandleTypeDef* timer)
 {
+    modeButton_.onTimerInterrupt(timer);
     timer_.onInterrupt(timer);
 }
 
@@ -43,6 +40,11 @@ void TrafficLight::toggleSpecialMode()
 {
     specialMode_ = !specialMode_;
     enter(specialMode_ ? State::FlashingYellowOn : State::Red);
+}
+
+void TrafficLight::modeButtonPressed(void* context)
+{
+    static_cast<TrafficLight*>(context)->toggleSpecialMode();
 }
 
 void TrafficLight::next()

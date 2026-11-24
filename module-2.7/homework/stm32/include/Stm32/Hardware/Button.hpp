@@ -2,20 +2,44 @@
 
 #include <cstdint>
 
+#include "Hardware/OneShotTimer.hpp"
 #include "stm32f4xx_hal.h"
 
 class Button {
 public:
-    Button(GPIO_TypeDef* port, std::uint16_t pin, bool activeHigh);
+    using PressCallback = void (*)(void* context);
 
-    void init();
+    Button(
+        GPIO_TypeDef* port,
+        std::uint16_t pin,
+        bool activeHigh,
+        TIM_HandleTypeDef& timer,
+        std::uint32_t debounceMs);
+
+    void init(PressCallback callback, void* context);
+    void update();
     void onInterrupt(std::uint16_t pin);
-    bool isPressed() const;
-    std::uint32_t takeInterrupts();
+    void onTimerInterrupt(TIM_HandleTypeDef* timer);
 
 private:
+    enum class State {
+        Idle,
+        Pressed,
+        Held,
+        Release,
+    };
+
+    bool isPressed() const;
+    bool takeEdge();
+    void onEdge(bool pressed);
+
     GPIO_TypeDef* const port_;
     const std::uint16_t pin_;
     const bool activeHigh_;
-    volatile std::uint32_t pendingInterrupts_ = 0;
+    const std::uint32_t debounceMs_;
+    OneShotTimer timer_;
+    PressCallback callback_ = nullptr;
+    void* callbackContext_ = nullptr;
+    State state_ = State::Idle;
+    volatile bool edgePending_ = false;
 };
