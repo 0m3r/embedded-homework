@@ -8,7 +8,7 @@ extern "C" void Error_Handler();
 
 void Application::init()
 {
-    if (!events_.registerHandler(trafficLightEvents_)) {
+    if (!events_.registerHandler(trafficLight_)) {
         Error_Handler();
     }
 

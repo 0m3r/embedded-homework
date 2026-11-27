@@ -3,7 +3,6 @@
 #include "Application/Event/EventDispatcher.hpp"
 #include "Application/Event/EventProducer.hpp"
 #include "Application/TrafficLight.hpp"
-#include "Application/Event/TrafficLightEventHandler.hpp"
 #include "Hardware/DebugLogger.hpp"
 #include "Platform/Stm32CriticalSection.hpp"
 #include "Platform/Stm32EventWaiter.hpp"
@@ -22,7 +21,6 @@ private:
     EventProducer eventProducer_{events_};
     Stm32EventWaiter eventWaiter_{criticalSection_};
     TrafficLight trafficLight_;
-    TrafficLightEventHandler trafficLightEvents_{trafficLight_};
     DebugLogger logger_;
 };
 

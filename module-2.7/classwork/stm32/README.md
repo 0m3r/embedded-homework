@@ -9,8 +9,7 @@ HAL ISR callbacks
     -> EventQueue (FIFO)
     -> EventDispatcher
     -> IEventHandler
-    -> TrafficLightEventHandler
-    -> TrafficLight FSM
+    -> TrafficLight event consumer / FSM
 ```
 
 ISR лише перетворюють апаратні сигнали на події та додають їх у FIFO.
@@ -34,8 +33,8 @@ PB0  -> button -> 3.3 V              (active-high, internal pull-down)
 
 `EventProducer` знає про STM32 HAL, GPIO, таймери та додає timestamp.
 `EventDispatcher` і `EventQueue` залишаються незалежними від hardware та
-доставляють події зареєстрованим реалізаціям `IEventHandler`. Реєстрація
-виконується явно в `Application`.
+доставляють події зареєстрованим реалізаціям `IEventHandler`. `TrafficLight`
+реалізує цей інтерфейс напряму. Реєстрація виконується явно в `Application`.
 
 Platform-specific операції винесені в адаптери:
 

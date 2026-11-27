@@ -2,18 +2,18 @@
 
 #include <cstdint>
 
+#include "Application/Event/IEventHandler.hpp"
 #include "Hardware/Button.hpp"
 #include "Hardware/Led.hpp"
 #include "Hardware/LedFlasher.hpp"
 #include "Hardware/OneShotTimer.hpp"
 #include "Platform/Board.hpp"
 
-class TrafficLight {
+class TrafficLight final : public IEventHandler {
 public:
     void init();
-    void onButtonEdge();
-    void onDebounceTimeout();
-    void onTimeout();
+    bool handles(EventType type) const override;
+    void handle(const Event& event) override;
 
 private:
     static constexpr std::uint32_t DebounceMs = 50;
@@ -27,6 +27,9 @@ private:
         FlashingYellow,
     };
 
+    void onButtonEdge();
+    void onDebounceTimeout();
+    void onTimeout();
     void next();
     void enter(State state);
     void setLights(bool red, bool yellow, bool green);

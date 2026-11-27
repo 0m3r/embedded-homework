@@ -16,6 +16,33 @@ void TrafficLight::init()
     enter(State::Green);
 }
 
+bool TrafficLight::handles(EventType type) const
+{
+    switch (type) {
+    case EventType::ButtonEdge:
+    case EventType::DebounceTimeout:
+    case EventType::TrafficTimeout:
+        return true;
+    }
+
+    return false;
+}
+
+void TrafficLight::handle(const Event& event)
+{
+    switch (event.type) {
+    case EventType::ButtonEdge:
+        onButtonEdge();
+        break;
+    case EventType::DebounceTimeout:
+        onDebounceTimeout();
+        break;
+    case EventType::TrafficTimeout:
+        onTimeout();
+        break;
+    }
+}
+
 void TrafficLight::onButtonEdge()
 {
     modeButton_.onEdge();
