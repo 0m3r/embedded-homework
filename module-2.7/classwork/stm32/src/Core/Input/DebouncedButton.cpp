@@ -1,34 +1,30 @@
-#include "Hardware/Button.hpp"
+#include "Core/Input/DebouncedButton.hpp"
 
-Button::Button(
-    GPIO_TypeDef* port,
-    std::uint16_t pin,
-    bool activeHigh,
-    TIM_HandleTypeDef& timer,
+DebouncedButton::DebouncedButton(
+    IButtonInput& input,
+    IOneShotTimer& timer,
     std::uint32_t debounceMs)
-    : port_(port),
-      pin_(pin),
-      activeHigh_(activeHigh),
-      debounceMs_(debounceMs),
-      timer_(timer)
+    : input_(input),
+      timer_(timer),
+      debounceMs_(debounceMs)
 {
 }
 
-void Button::init(PressCallback callback, void* context)
+void DebouncedButton::init(PressCallback callback, void* context)
 {
     callback_ = callback;
     callbackContext_ = context;
     state_ = State::Idle;
 }
 
-void Button::onEdge()
+void DebouncedButton::onEdge()
 {
-    handleEdge(isPressed());
+    handleEdge(input_.isPressed());
 }
 
-void Button::onTimeout()
+void DebouncedButton::onTimeout()
 {
-    const bool pressed = isPressed();
+    const bool pressed = input_.isPressed();
     if (state_ == State::Pressed) {
         state_ = pressed ? State::Held : State::Idle;
         if (pressed && callback_ != nullptr) {
@@ -39,13 +35,7 @@ void Button::onTimeout()
     }
 }
 
-bool Button::isPressed() const
-{
-    const bool high = HAL_GPIO_ReadPin(port_, pin_) == GPIO_PIN_SET;
-    return activeHigh_ ? high : !high;
-}
-
-void Button::handleEdge(bool pressed)
+void DebouncedButton::handleEdge(bool pressed)
 {
     switch (state_) {
     case State::Idle:
@@ -54,18 +44,15 @@ void Button::handleEdge(bool pressed)
             timer_.start(debounceMs_);
         }
         break;
-
     case State::Pressed:
         timer_.start(debounceMs_);
         break;
-
     case State::Held:
         if (!pressed) {
             state_ = State::Release;
             timer_.start(debounceMs_);
         }
         break;
-
     case State::Release:
         timer_.start(debounceMs_);
         break;

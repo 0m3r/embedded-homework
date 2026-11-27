@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "Application/Event/Event.hpp"
+#include "Core/Event/Event.hpp"
 
 class EventQueue {
 public:

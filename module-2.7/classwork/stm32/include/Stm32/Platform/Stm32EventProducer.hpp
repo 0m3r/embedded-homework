@@ -2,12 +2,13 @@
 
 #include <cstdint>
 
-#include "Application/Event/IEventDispatcher.hpp"
+#include "Application/TrafficEvents.hpp"
+#include "Core/Event/IEventDispatcher.hpp"
 #include "stm32f4xx_hal.h"
 
-class EventProducer {
+class Stm32EventProducer {
 public:
-    explicit EventProducer(IEventDispatcher& dispatcher);
+    explicit Stm32EventProducer(IEventDispatcher& dispatcher);
 
     void onButtonInterrupt(std::uint16_t pin);
     void onTimerInterrupt(TIM_HandleTypeDef* timer);

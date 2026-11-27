@@ -2,15 +2,16 @@
 
 #include <cstdint>
 
+#include "Core/Hardware/ILed.hpp"
 #include "stm32f4xx_hal.h"
 
-class Led {
+class Led final : public ILed {
 public:
     Led(GPIO_TypeDef* port, std::uint16_t pin, bool activeLow);
 
-    void off();
-    void on();
-    void toggle();
+    void off() override;
+    void on() override;
+    void toggle() override;
 
 private:
     void write(bool enabled);

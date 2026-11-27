@@ -1,12 +1,12 @@
-#include "Hardware/LedFlasher.hpp"
+#include "Core/Output/LedFlasher.hpp"
 
-LedFlasher::LedFlasher(OneShotTimer& timer)
+LedFlasher::LedFlasher(IOneShotTimer& timer)
     : timer_(timer)
 {
 }
 
 void LedFlasher::start(
-    Led& led,
+    ILed& led,
     std::uint32_t halfPeriodMs,
     std::uint32_t halfPeriods)
 {

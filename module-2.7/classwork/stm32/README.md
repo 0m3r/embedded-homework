@@ -5,9 +5,9 @@ STM32F411CE:
 
 ```text
 HAL ISR callbacks
-    -> EventProducer
+    -> Stm32EventProducer
     -> EventQueue (FIFO)
-    -> EventDispatcher
+    -> Stm32EventDispatcher
     -> IEventHandler
     -> TrafficLight event consumer / FSM
 ```
@@ -31,11 +31,25 @@ PB0  -> button -> 3.3 V              (active-high, internal pull-down)
 - `DebounceTimeout` — завершення one-shot TIM3;
 - `TrafficTimeout` — завершення one-shot TIM2.
 
-`EventProducer` знає про STM32 HAL, GPIO, таймери та додає timestamp.
+`Stm32EventProducer` знає про STM32 HAL, GPIO, таймери та додає timestamp.
 `IEventDispatcher` задає platform-independent API. `Stm32EventDispatcher`
 реалізує FIFO synchronization через PRIMASK, доставку подій та race-safe
 очікування через `__WFI()`. `TrafficLight` реалізує `IEventHandler` напряму.
 Реєстрація виконується явно в `Application`.
+
+## Core framework
+
+Platform-independent код винесено з `Stm32` у спільні `include/Core` та
+`src/Core`:
+
+- `Event`, `EventQueue`, `IEventDispatcher`, `IEventHandler`;
+- `ILed`, `IButtonInput`, `IOneShotTimer`, `IClock`;
+- `DebouncedButton`, `LedFlasher`, `IntervalTimer`.
+
+`Core` не містить STM32 HAL, GPIO pins або конкретних таймерів. `Led`,
+`ButtonInput`, `OneShotTimer`, `Stm32EventProducer` і
+`Stm32EventDispatcher` є STM32 adapters. Ідентифікатори подій світлофора
+залишаються в `Application/TrafficEvents.hpp`, а не в generic event layer.
 
 ## FSM
 

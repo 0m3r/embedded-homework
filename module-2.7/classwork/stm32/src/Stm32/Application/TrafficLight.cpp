@@ -19,9 +19,9 @@ void TrafficLight::init()
 bool TrafficLight::handles(EventType type) const
 {
     switch (type) {
-    case EventType::ButtonEdge:
-    case EventType::DebounceTimeout:
-    case EventType::TrafficTimeout:
+    case TrafficEvent::ButtonEdge:
+    case TrafficEvent::DebounceTimeout:
+    case TrafficEvent::TrafficTimeout:
         return true;
     }
 
@@ -31,13 +31,13 @@ bool TrafficLight::handles(EventType type) const
 void TrafficLight::handle(const Event& event)
 {
     switch (event.type) {
-    case EventType::ButtonEdge:
+    case TrafficEvent::ButtonEdge:
         onButtonEdge();
         break;
-    case EventType::DebounceTimeout:
+    case TrafficEvent::DebounceTimeout:
         onDebounceTimeout();
         break;
-    case EventType::TrafficTimeout:
+    case TrafficEvent::TrafficTimeout:
         onTimeout();
         break;
     }

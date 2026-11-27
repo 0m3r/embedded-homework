@@ -2,11 +2,7 @@
 
 #include <cstdint>
 
-enum class EventType : std::uint8_t {
-    ButtonEdge,
-    DebounceTimeout,
-    TrafficTimeout,
-};
+using EventType = std::uint16_t;
 
 struct Event {
     EventType type;

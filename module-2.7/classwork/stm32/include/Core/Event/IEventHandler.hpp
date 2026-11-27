@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Application/Event/Event.hpp"
+#include "Core/Event/Event.hpp"
 
 class IEventHandler {
 public:

@@ -2,10 +2,12 @@
 
 #include <cstdint>
 
-#include "Application/Event/IEventHandler.hpp"
-#include "Hardware/Button.hpp"
+#include "Application/TrafficEvents.hpp"
+#include "Core/Event/IEventHandler.hpp"
+#include "Core/Input/DebouncedButton.hpp"
+#include "Core/Output/LedFlasher.hpp"
+#include "Hardware/ButtonInput.hpp"
 #include "Hardware/Led.hpp"
-#include "Hardware/LedFlasher.hpp"
 #include "Hardware/OneShotTimer.hpp"
 #include "Platform/Board.hpp"
 
@@ -36,11 +38,14 @@ private:
     void toggleSpecialMode();
     static void modeButtonPressed(void* context);
 
-    Button modeButton_{
+    ButtonInput modeButtonInput_{
         GPIOB,
         GPIO_PIN_0,
-        true,
-        Board::debounceTimer(),
+        true};
+    OneShotTimer debounceTimer_{Board::debounceTimer()};
+    DebouncedButton modeButton_{
+        modeButtonInput_,
+        debounceTimer_,
         DebounceMs};
     Led red_{GPIOC, GPIO_PIN_13, false};
     Led yellow_{GPIOC, GPIO_PIN_14, false};

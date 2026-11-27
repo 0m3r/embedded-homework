@@ -2,18 +2,16 @@
 
 #include <cstdint>
 
-#include "Hardware/OneShotTimer.hpp"
-#include "stm32f4xx_hal.h"
+#include "Core/Hardware/IButtonInput.hpp"
+#include "Core/Hardware/IOneShotTimer.hpp"
 
-class Button {
+class DebouncedButton {
 public:
     using PressCallback = void (*)(void* context);
 
-    Button(
-        GPIO_TypeDef* port,
-        std::uint16_t pin,
-        bool activeHigh,
-        TIM_HandleTypeDef& timer,
+    DebouncedButton(
+        IButtonInput& input,
+        IOneShotTimer& timer,
         std::uint32_t debounceMs);
 
     void init(PressCallback callback, void* context);
@@ -28,14 +26,11 @@ private:
         Release,
     };
 
-    bool isPressed() const;
     void handleEdge(bool pressed);
 
-    GPIO_TypeDef* const port_;
-    const std::uint16_t pin_;
-    const bool activeHigh_;
+    IButtonInput& input_;
+    IOneShotTimer& timer_;
     const std::uint32_t debounceMs_;
-    OneShotTimer timer_;
     PressCallback callback_ = nullptr;
     void* callbackContext_ = nullptr;
     State state_ = State::Idle;

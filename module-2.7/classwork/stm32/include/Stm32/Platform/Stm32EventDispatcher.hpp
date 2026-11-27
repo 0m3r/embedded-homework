@@ -2,8 +2,8 @@
 
 #include <cstddef>
 
-#include "Application/Event/EventQueue.hpp"
-#include "Application/Event/IEventDispatcher.hpp"
+#include "Core/Event/EventQueue.hpp"
+#include "Core/Event/IEventDispatcher.hpp"
 
 class Stm32EventDispatcher final : public IEventDispatcher {
 public:

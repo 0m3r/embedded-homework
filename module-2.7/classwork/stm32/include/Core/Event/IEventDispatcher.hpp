@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Application/Event/Event.hpp"
-#include "Application/Event/IEventHandler.hpp"
+#include "Core/Event/Event.hpp"
+#include "Core/Event/IEventHandler.hpp"
 
 class IEventDispatcher {
 public:

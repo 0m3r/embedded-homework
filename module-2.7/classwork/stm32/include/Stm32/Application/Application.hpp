@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Application/Event/EventProducer.hpp"
 #include "Application/TrafficLight.hpp"
 #include "Hardware/DebugLogger.hpp"
 #include "Platform/Stm32EventDispatcher.hpp"
+#include "Platform/Stm32EventProducer.hpp"
 
 class Application {
 public:
@@ -15,7 +15,7 @@ public:
 
 private:
     Stm32EventDispatcher events_;
-    EventProducer eventProducer_{events_};
+    Stm32EventProducer eventProducer_{events_};
     TrafficLight trafficLight_;
     DebugLogger logger_;
 };
