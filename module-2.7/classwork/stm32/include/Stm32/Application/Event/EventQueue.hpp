@@ -4,12 +4,9 @@
 #include <cstdint>
 
 #include "Application/Event/Event.hpp"
-#include "Application/Event/ICriticalSection.hpp"
 
 class EventQueue {
 public:
-    explicit EventQueue(ICriticalSection& criticalSection);
-
     bool post(const Event& event);
     bool take(Event& event);
     bool empty() const;
@@ -25,5 +22,4 @@ private:
     volatile std::size_t head_ = 0;
     volatile std::size_t tail_ = 0;
     volatile std::uint32_t dropped_ = 0;
-    ICriticalSection& criticalSection_;
 };

@@ -1,11 +1,9 @@
 #pragma once
 
-#include "Application/Event/EventDispatcher.hpp"
 #include "Application/Event/EventProducer.hpp"
 #include "Application/TrafficLight.hpp"
 #include "Hardware/DebugLogger.hpp"
-#include "Platform/Stm32CriticalSection.hpp"
-#include "Platform/Stm32EventWaiter.hpp"
+#include "Platform/Stm32EventDispatcher.hpp"
 
 class Application {
 public:
@@ -16,10 +14,8 @@ public:
     void onTimerInterrupt(TIM_HandleTypeDef* timer);
 
 private:
-    Stm32CriticalSection criticalSection_;
-    EventDispatcher events_{criticalSection_};
+    Stm32EventDispatcher events_;
     EventProducer eventProducer_{events_};
-    Stm32EventWaiter eventWaiter_{criticalSection_};
     TrafficLight trafficLight_;
     DebugLogger logger_;
 };

@@ -24,7 +24,7 @@ void Application::update()
 
 void Application::waitForEvent()
 {
-    eventWaiter_.wait(events_);
+    events_.wait();
 }
 
 void Application::onButtonInterrupt(std::uint16_t pin)

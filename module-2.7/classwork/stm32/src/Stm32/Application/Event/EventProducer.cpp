@@ -2,7 +2,7 @@
 
 #include "Platform/Board.hpp"
 
-EventProducer::EventProducer(EventDispatcher& dispatcher)
+EventProducer::EventProducer(IEventDispatcher& dispatcher)
     : dispatcher_(dispatcher)
 {
 }

@@ -14,7 +14,7 @@ HAL ISR callbacks
 
 ISR лише перетворюють апаратні сигнали на події та додають їх у FIFO.
 Debounce, переходи FSM і керування GPIO виконуються в main context.
-Коли черга порожня, `Stm32EventWaiter` очікує interrupt через `__WFI()`.
+Коли черга порожня, `Stm32EventDispatcher` очікує interrupt через `__WFI()`.
 
 ## Підключення
 
@@ -32,15 +32,10 @@ PB0  -> button -> 3.3 V              (active-high, internal pull-down)
 - `TrafficTimeout` — завершення one-shot TIM2.
 
 `EventProducer` знає про STM32 HAL, GPIO, таймери та додає timestamp.
-`EventDispatcher` і `EventQueue` залишаються незалежними від hardware та
-доставляють події зареєстрованим реалізаціям `IEventHandler`. `TrafficLight`
-реалізує цей інтерфейс напряму. Реєстрація виконується явно в `Application`.
-
-Platform-specific операції винесені в адаптери:
-
-- `Stm32CriticalSection` реалізує `ICriticalSection` через PRIMASK;
-- `Stm32EventWaiter` виконує race-safe перевірку FIFO та `__WFI()`;
-- `EventProducer` перетворює HAL callbacks на події.
+`IEventDispatcher` задає platform-independent API. `Stm32EventDispatcher`
+реалізує FIFO synchronization через PRIMASK, доставку подій та race-safe
+очікування через `__WFI()`. `TrafficLight` реалізує `IEventHandler` напряму.
+Реєстрація виконується явно в `Application`.
 
 ## FSM
 
