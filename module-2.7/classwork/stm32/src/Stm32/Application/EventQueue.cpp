@@ -1,49 +1,56 @@
 #include "Application/EventQueue.hpp"
 
-#include "stm32f4xx_hal.h"
-
-bool EventQueue::post(EventType type)
+EventQueue::EventQueue(ICriticalSection& criticalSection)
+    : criticalSection_(criticalSection)
 {
-    const auto interruptState = __get_PRIMASK();
-    __disable_irq();
+}
+
+bool EventQueue::post(const Event& event)
+{
+    const auto interruptState = criticalSection_.enter();
 
     const auto next = (head_ + 1U) & Mask;
     if (next == tail_) {
         ++dropped_;
-        __set_PRIMASK(interruptState);
+        criticalSection_.leave(interruptState);
         return false;
     }
 
-    events_[head_] = Event{type, HAL_GetTick()};
+    events_[head_] = event;
     head_ = next;
 
-    __set_PRIMASK(interruptState);
+    criticalSection_.leave(interruptState);
     return true;
 }
 
 bool EventQueue::take(Event& event)
 {
-    const auto interruptState = __get_PRIMASK();
-    __disable_irq();
+    const auto interruptState = criticalSection_.enter();
 
     if (head_ == tail_) {
-        __set_PRIMASK(interruptState);
+        criticalSection_.leave(interruptState);
         return false;
     }
 
     event = events_[tail_];
     tail_ = (tail_ + 1U) & Mask;
 
-    __set_PRIMASK(interruptState);
+    criticalSection_.leave(interruptState);
     return true;
 }
 
 bool EventQueue::empty() const
 {
-    return head_ == tail_;
+    const auto interruptState = criticalSection_.enter();
+    const bool isEmpty = head_ == tail_;
+    criticalSection_.leave(interruptState);
+    return isEmpty;
 }
 
 std::uint32_t EventQueue::dropped() const
 {
-    return dropped_;
+    const auto interruptState = criticalSection_.enter();
+    const auto dropped = dropped_;
+    criticalSection_.leave(interruptState);
+    return dropped;
 }

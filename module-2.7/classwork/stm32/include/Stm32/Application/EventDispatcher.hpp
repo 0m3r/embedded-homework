@@ -7,10 +7,12 @@
 
 class EventDispatcher {
 public:
-    bool post(EventType type);
+    explicit EventDispatcher(ICriticalSection& criticalSection);
+
+    bool post(const Event& event);
     bool registerHandler(IEventHandler& handler);
     void dispatchPending();
-    void wait();
+    bool hasPendingEvents() const;
 
 private:
     static constexpr std::size_t MaxHandlers = 8;

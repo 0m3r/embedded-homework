@@ -1,10 +1,13 @@
 #include "Application/EventDispatcher.hpp"
 
-#include "stm32f4xx_hal.h"
-
-bool EventDispatcher::post(EventType type)
+EventDispatcher::EventDispatcher(ICriticalSection& criticalSection)
+    : queue_(criticalSection)
 {
-    return queue_.post(type);
+}
+
+bool EventDispatcher::post(const Event& event)
+{
+    return queue_.post(event);
 }
 
 bool EventDispatcher::registerHandler(IEventHandler& handler)
@@ -31,13 +34,9 @@ void EventDispatcher::dispatchPending()
     }
 }
 
-void EventDispatcher::wait()
+bool EventDispatcher::hasPendingEvents() const
 {
-    __disable_irq();
-    if (queue_.empty()) {
-        __WFI();
-    }
-    __enable_irq();
+    return !queue_.empty();
 }
 
 void EventDispatcher::dispatch(const Event& event)

@@ -5,6 +5,8 @@
 #include "Application/TrafficLight.hpp"
 #include "Application/TrafficLightEventHandler.hpp"
 #include "Hardware/DebugLogger.hpp"
+#include "Platform/Stm32CriticalSection.hpp"
+#include "Platform/Stm32EventWaiter.hpp"
 
 class Application {
 public:
@@ -15,8 +17,10 @@ public:
     void onTimerInterrupt(TIM_HandleTypeDef* timer);
 
 private:
-    EventDispatcher events_;
+    Stm32CriticalSection criticalSection_;
+    EventDispatcher events_{criticalSection_};
     EventProducer eventProducer_{events_};
+    Stm32EventWaiter eventWaiter_{criticalSection_};
     TrafficLight trafficLight_;
     TrafficLightEventHandler trafficLightEvents_{trafficLight_};
     DebugLogger logger_;
