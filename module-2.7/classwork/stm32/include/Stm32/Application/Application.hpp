@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Application/EventDispatcher.hpp"
-#include "Application/EventProducer.hpp"
+#include "Application/Event/EventDispatcher.hpp"
+#include "Application/Event/EventProducer.hpp"
 #include "Application/TrafficLight.hpp"
-#include "Application/TrafficLightEventHandler.hpp"
+#include "Application/Event/TrafficLightEventHandler.hpp"
 #include "Hardware/DebugLogger.hpp"
 #include "Platform/Stm32CriticalSection.hpp"
 #include "Platform/Stm32EventWaiter.hpp"

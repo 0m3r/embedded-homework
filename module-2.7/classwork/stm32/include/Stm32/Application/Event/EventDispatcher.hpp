@@ -2,8 +2,8 @@
 
 #include <cstddef>
 
-#include "Application/EventQueue.hpp"
-#include "Application/IEventHandler.hpp"
+#include "Application/Event/EventQueue.hpp"
+#include "Application/Event/IEventHandler.hpp"
 
 class EventDispatcher {
 public:

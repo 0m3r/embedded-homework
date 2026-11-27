@@ -1,4 +1,4 @@
-#include "Application/EventQueue.hpp"
+#include "Application/Event/EventQueue.hpp"
 
 EventQueue::EventQueue(ICriticalSection& criticalSection)
     : criticalSection_(criticalSection)

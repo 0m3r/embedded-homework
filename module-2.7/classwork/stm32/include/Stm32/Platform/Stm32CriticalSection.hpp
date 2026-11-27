@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Application/ICriticalSection.hpp"
+#include "Application/Event/ICriticalSection.hpp"
 
 class Stm32CriticalSection final : public ICriticalSection {
 public:

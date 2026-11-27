@@ -1,4 +1,4 @@
-#include "Application/EventDispatcher.hpp"
+#include "Application/Event/EventDispatcher.hpp"
 
 EventDispatcher::EventDispatcher(ICriticalSection& criticalSection)
     : queue_(criticalSection)

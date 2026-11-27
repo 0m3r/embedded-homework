@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "Application/EventDispatcher.hpp"
+#include "Application/Event/EventDispatcher.hpp"
 #include "stm32f4xx_hal.h"
 
 class EventProducer {

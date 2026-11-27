@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Application/IEventHandler.hpp"
+#include "Application/Event/IEventHandler.hpp"
 #include "Application/TrafficLight.hpp"
 
 class TrafficLightEventHandler final : public IEventHandler {

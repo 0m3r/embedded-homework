@@ -1,4 +1,4 @@
-#include "Application/TrafficLightEventHandler.hpp"
+#include "Application/Event/TrafficLightEventHandler.hpp"
 
 TrafficLightEventHandler::TrafficLightEventHandler(TrafficLight& trafficLight)
     : trafficLight_(trafficLight)

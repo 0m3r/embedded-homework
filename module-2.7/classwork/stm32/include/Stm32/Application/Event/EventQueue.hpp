@@ -3,8 +3,8 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "Application/Event.hpp"
-#include "Application/ICriticalSection.hpp"
+#include "Application/Event/Event.hpp"
+#include "Application/Event/ICriticalSection.hpp"
 
 class EventQueue {
 public:
